@@ -67,14 +67,14 @@ class Dusman{
             }
         }
        
-        if (IsKeyDown(KEY_K)) {
+        if (IsKeyDown(KEY_J)) {
             if (ball_y + ball_radius < SCREEN_HEIGHT) {
                 ball_y += ball_speed_y;
             }
         }
 
        
-        if (IsKeyDown(KEY_L)) {
+        if (IsKeyDown(KEY_K)) {
             if (ball_x + ball_radius < SCREEN_WIDTH) { 
                 ball_x += ball_speed_x;
             }
