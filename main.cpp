@@ -89,7 +89,7 @@ int main() {
     Ball ball(SCREEN_WIDTH / 2, SCREEN_HEIGHT - 50, 5, 5, 15);  // Oyuncu topu
     vector<Bullet> bullets;  // Dinamik dizi ile mermiler burada saklanacak
 
-    while (!WindawShouldClose()) {
+    while (!WindowShouldClose()) {
         Vector2 mousePos = GetMousePosition();  // Mouse pozisyonunu al
 
         // Topu güncelle
