@@ -98,7 +98,7 @@ int main() {
         // Mermi ateşleme (Mouse sol tuşu ile)
         if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
             // Mouse tuşuna basıldığında, topun biraz üstünde bir mermi ateşle
-            bullets.push_back(Bullet(ball.ball_x, ball.ball_y - ball.ball_radius, mousePos.x, mousePos.y, 25.0f, 55));
+            bullets.push_back(Bullet(ball.ball_x, ball.ball_y - ball.ball_radius, mousePos.x, mousePos.y, 25.0f, 5));
         }
 
         // Mermileri güncelle
