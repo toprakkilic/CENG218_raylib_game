@@ -65,8 +65,8 @@ public:
         // Yönü normalize et (yani hız vektörünü oluştur)
         float distance = sqrt(deltaX * deltaX + deltaY * deltaY);  // İki nokta arasındaki mesafe
         if (distance > 0) {  // Mesafe sıfır değilse, hareket et
-            float speedX = (deltaX / distance) * ball_speed_x;  // X yönünde hız
-            float speedY = (deltaY / distance) * ball_speed_y;  // Y yönünde hız
+            float speedX = (deltaX / distance) * ball_speed_x * 1.5;  // X yönünde hız
+            float speedY = (deltaY / distance) * ball_speed_y * 1.5;  // Y yönünde hız
 
             // Düşmanı bu hızlarla hareket ettir
             ball_x += speedX;

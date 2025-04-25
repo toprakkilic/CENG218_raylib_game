@@ -10,5 +10,6 @@
 	},
 	"files.associations": {
 		"iostream": "cpp"
-	}
+	},
+	"makefile.configureOnOpen": false
 }
