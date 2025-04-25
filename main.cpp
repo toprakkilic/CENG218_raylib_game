@@ -1,5 +1,6 @@
 #include <iostream>
 #include <raylib.h>
+#include <cmath>  // Mesafe hesaplama için
 
 using namespace std;
 
@@ -27,7 +28,6 @@ public:
             }
         }
 
-       
         if (IsKeyDown(KEY_D)) {
             if (ball_x + ball_radius < SCREEN_WIDTH) { 
                 ball_x += ball_speed_x;
@@ -46,11 +46,8 @@ public:
     }
 };
 
-
-class Dusman{
-
-
-    public:
+class Dusman {
+public:
     int ball_x;
     int ball_y;
     int ball_speed_x;
@@ -60,60 +57,93 @@ class Dusman{
     Dusman(int startX, int startY, int startSpeedX, int startSpeedY, int ballRadius) 
         : ball_x(startX), ball_y(startY), ball_speed_x(startSpeedX), ball_speed_y(startSpeedY), ball_radius(ballRadius) {}
 
-    void Update(int SCREEN_WIDTH, int SCREEN_HEIGHT) {
-        if (IsKeyDown(KEY_U)) {
-            if (ball_y - ball_radius > 0) {
-                ball_y -= ball_speed_y;
-            }
-        }
-       
-        if (IsKeyDown(KEY_J)) {
-            if (ball_y + ball_radius < SCREEN_HEIGHT) {
-                ball_y += ball_speed_y;
-            }
-        }
+    void Update(int player_x, int player_y, int SCREEN_WIDTH, int SCREEN_HEIGHT) {
+        // Düşman, oyuncuyu kovalayacak
+        int deltaX = player_x - ball_x;  // Yatay mesafe farkı
+        int deltaY = player_y - ball_y;  // Dikey mesafe farkı
 
-       
-        if (IsKeyDown(KEY_K)) {
-            if (ball_x + ball_radius < SCREEN_WIDTH) { 
-                ball_x += ball_speed_x;
-            }
-        }
+        // Yönü normalize et (yani hız vektörünü oluştur)
+        float distance = sqrt(deltaX * deltaX + deltaY * deltaY);  // İki nokta arasındaki mesafe
+        if (distance > 0) {  // Mesafe sıfır değilse, hareket et
+            float speedX = (deltaX / distance) * ball_speed_x * 1.5;  // X yönünde hız
+            float speedY = (deltaY / distance) * ball_speed_y * 1.5;  // Y yönünde hız
 
-        if (IsKeyDown(KEY_H)) {
-            if (ball_x - ball_radius > 0) { 
-                ball_x -= ball_speed_x;
-            }
+            // Düşmanı bu hızlarla hareket ettir
+            ball_x += speedX;
+            ball_y += speedY;
         }
     }
 
     void Draw() {
-        DrawCircle(ball_x, ball_y, ball_radius, RED);
+        DrawCircle(ball_x, ball_y, ball_radius, RED);  // Düşmanı kırmızı çizer
     }
 
-
-
+    bool CheckCollision(Ball& player) {
+        // Raylib'in CheckCollisionCircles fonksiyonunu kullanarak çarpışmayı kontrol et
+        Vector2 enemyCenter = { (float)ball_x, (float)ball_y };
+        Vector2 playerCenter = { (float)player.ball_x, (float)player.ball_y };
+        return CheckCollisionCircles(playerCenter, player.ball_radius, enemyCenter, ball_radius);  // Çarpışma kontrolü
+    }
 };
-
 
 int main() {
     const int SCREEN_WIDTH = 800;
     const int SCREEN_HEIGHT = 600;
 
-    Ball ball(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, 5, 5, 15);
-    Dusman dusman(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, 5, 5, 15);
-
-    InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "My first RAYLIB program!");
+    InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Enemy Follow Player Example");
     SetTargetFPS(60);
 
+    Ball ball(SCREEN_WIDTH / 2, SCREEN_HEIGHT - 50, 5, 5, 15);  // Oyuncu topu
+    Dusman dusman(SCREEN_WIDTH / 4, SCREEN_HEIGHT / 4, 3, 3, 15);  // Düşman topu
+
+    bool gameOver = false;
+    int score = 0;  // Skor başlangıçta sıfır
+    float timer = 0.0f;  // Zamanlayıcı (her saniyede skor artacak)
+
     while (!WindowShouldClose()) {
-        dusman.Update(SCREEN_WIDTH, SCREEN_HEIGHT);
+        // Zamanı güncelle (her frame'de)
+        if (!gameOver) {
+            timer += GetFrameTime();  // Zamanlayıcıyı arttır
+
+            // Her saniyede bir skoru artır
+            if (timer >= 1.0f) {
+                score++;  // Skoru bir artır
+                timer = 0.0f;  // Zamanı sıfırla
+            }
+        }
+
+        if(gameOver){
+            BeginDrawing();
+            ClearBackground(RAYWHITE);
+            DrawText("GAME OVER", SCREEN_WIDTH / 2 - 100, SCREEN_HEIGHT / 2, 30, RED);
+            DrawText(TextFormat("Final Score: %d", score), SCREEN_WIDTH / 2 - 100, SCREEN_HEIGHT / 2 + 40, 20, BLACK);
+            EndDrawing();
+            continue;  // Eğer oyun bitmişse, döngüye devam etme
+        }
+
+        // Oyuncu hareketi
         ball.Update(SCREEN_WIDTH, SCREEN_HEIGHT);
 
+        // Düşman hareketi (oyuncuya doğru)
+        dusman.Update(ball.ball_x, ball.ball_y, SCREEN_WIDTH, SCREEN_HEIGHT);
+
+        // Çarpışma kontrolü (eğer mermi topa çarptıysa, "Game Over" yazdır)
+        if (dusman.CheckCollision(ball)) {
+            gameOver = true;  // Çarpışma olduğunda oyun biter
+        }
+
+        // Ekranı çizme işlemi
         BeginDrawing();
-        ClearBackground(GRAY);
-        ball.Draw();
-        dusman.Draw();
+        ClearBackground(RAYWHITE);
+
+        ball.Draw();  // Oyuncu topunu çiz
+        dusman.Draw();  // Düşmanı çiz
+
+        // Eğer oyun bitmemişse skoru göster
+        if (!gameOver) {
+            DrawText(TextFormat("Score: %d", score), 10, 10, 20, BLACK);
+        }
+
         EndDrawing();
     }
 
