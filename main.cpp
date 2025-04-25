@@ -1,6 +1,8 @@
 #include <iostream>
+#include <vector>
 #include <raylib.h>
 #include <cmath>  // Mesafe hesaplama için
+
 
 using namespace std;
 
@@ -86,6 +88,34 @@ public:
     }
 };
 
+// Mermi sınıfı
+class Bullet {
+    public:
+        float x, y;
+        float speedX, speedY;
+        int radius;
+    
+        // Parametreli yapıcı
+        Bullet(float startX, float startY, float targetX, float targetY, float bulletSpeed, int bulletRadius)
+            : x(startX), y(startY), radius(bulletRadius) {
+    
+            // Mermiyi mouse'un olduğu yere doğru yönlendir
+            float deltaX = targetX - startX;
+            float deltaY = targetY - startY;
+    
+            // Yönü normalize et
+            float length = sqrt(deltaX * deltaX + deltaY * deltaY);
+            speedX = (deltaX / length) * bulletSpeed;  // Hız vektörünü normalize et
+            speedY = (deltaY / length) * bulletSpeed;  // Hız vektörünü normalize et
+        }
+    
+        void Update() {
+            // Mermi hedefe doğru hareket eder
+            x += speedX;
+            y += speedY;
+        }
+    };
+
 int main() {
     const int SCREEN_WIDTH = 800;
     const int SCREEN_HEIGHT = 600;
@@ -95,12 +125,14 @@ int main() {
 
     Ball ball(SCREEN_WIDTH / 2, SCREEN_HEIGHT - 50, 5, 5, 15);  // Oyuncu topu
     Dusman dusman(SCREEN_WIDTH / 4, SCREEN_HEIGHT / 4, 3, 3, 15);  // Düşman topu
+    vector<Bullet> bullets; //mermiler
 
     bool gameOver = false;
     int score = 0;  // Skor başlangıçta sıfır
     float timer = 0.0f;  // Zamanlayıcı (her saniyede skor artacak)
 
     while (!WindowShouldClose()) {
+        Vector2 mousePos = GetMousePosition(); //mosue posizyonu
         // Zamanı güncelle (her frame'de)
         if (!gameOver) {
             timer += GetFrameTime();  // Zamanlayıcıyı arttır
@@ -131,6 +163,16 @@ int main() {
         if (dusman.CheckCollision(ball)) {
             gameOver = true;  // Çarpışma olduğunda oyun biter
         }
+                // Mermi ateşleme (Mouse sol tuşu ile)
+        if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+                // Mouse tuşuna basıldığında, topun biraz üstünde bir mermi ateşle
+            bullets.push_back(Bullet(ball.ball_x, ball.ball_y - ball.ball_radius, mousePos.x, mousePos.y, 25.0f, 5));
+        }
+        
+                // Mermileri güncelle
+         for (auto& bullet : bullets) {
+            bullet.Update();
+         }
 
         // Ekranı çizme işlemi
         BeginDrawing();
