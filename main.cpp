@@ -1,6 +1,6 @@
 #include <iostream>
 #include <raylib.h>
-#include <cmath>  // Mesafe ve yön hesaplamak için
+#include <cmath>  // Mesafe hesaplama için
 
 using namespace std;
 
@@ -46,7 +46,6 @@ public:
     }
 };
 
-
 class Dusman {
 public:
     int ball_x;
@@ -78,25 +77,50 @@ public:
     void Draw() {
         DrawCircle(ball_x, ball_y, ball_radius, RED);  // Düşmanı kırmızı çizer
     }
-};
 
+    bool CheckCollision(Ball& player) {
+        // Düşman ve oyuncu arasındaki mesafeyi hesapla
+        float distance = sqrt(pow(ball_x - player.ball_x, 2) + pow(ball_y - player.ball_y, 2));
+
+        // Çarpışma olup olmadığını kontrol et
+        if (distance < (ball_radius + player.ball_radius)) {
+            return true;  // Çarpışma varsa true döndür
+        }
+        return false;  // Çarpışma yoksa false döndür
+    }
+};
 
 int main() {
     const int SCREEN_WIDTH = 800;
     const int SCREEN_HEIGHT = 600;
 
-    Ball ball(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, 5, 5, 15);  // Oyuncu topu
-    Dusman dusman(SCREEN_WIDTH / 4, SCREEN_HEIGHT / 4, 3, 3, 15);  // Düşman topu
-
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Enemy Follow Player Example");
     SetTargetFPS(60);
 
+    Ball ball(SCREEN_WIDTH / 2, SCREEN_HEIGHT - 50, 5, 5, 15);  // Oyuncu topu
+    Dusman dusman(SCREEN_WIDTH / 4, SCREEN_HEIGHT / 4, 3, 3, 15);  // Düşman topu
+
+    bool gameOver = false;
+
     while (!WindowShouldClose()) {
+        if (gameOver) {
+            BeginDrawing();
+            ClearBackground(RAYWHITE);
+            DrawText("GAME OVER", SCREEN_WIDTH / 2 - 100, SCREEN_HEIGHT / 2, 30, RED);
+            EndDrawing();
+            continue;  // Eğer oyun bitmişse, döngüye devam etme
+        }
+
         // Oyuncu hareketi
         ball.Update(SCREEN_WIDTH, SCREEN_HEIGHT);
 
         // Düşman hareketi (oyuncuya doğru)
         dusman.Update(ball.ball_x, ball.ball_y, SCREEN_WIDTH, SCREEN_HEIGHT);
+
+        // Çarpışma kontrolü (eğer mermi topa çarptıysa, "Game Over" yazdır)
+        if (dusman.CheckCollision(ball)) {
+            gameOver = true;  // Çarpışma olduğunda oyun biter
+        }
 
         // Ekranı çizme işlemi
         BeginDrawing();
