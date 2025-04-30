@@ -1,7 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <raylib.h>
-#include <cmath>  // Mesafe hesaplama için
+#include <cmath>  
 using namespace std;
 
 class Player {
@@ -59,12 +59,11 @@ public:
         : Dusman_X(startX), Dusman_Y(startY), Dusman_Speed_X(startSpeedX), Dusman_Speed_Y(startSpeedY), Dusman_Radius(ballRadius) {}
 
     void Update(int player_x, int player_y, int SCREEN_WIDTH, int SCREEN_HEIGHT) {
-        if (!alive) { return; }
         
-        int deltaX = player_x - Dusman_X;  // Yatay mesafe farkı
-        int deltaY = player_y - Dusman_Y;  // Dikey mesafe farkı
+        int deltaX = player_x - Dusman_X;
+        int deltaY = player_y - Dusman_Y;
 
-        float distance = sqrt(deltaX * deltaX + deltaY * deltaY);  // İki nokta arasındaki mesafe
+        float distance = sqrt(deltaX * deltaX + deltaY * deltaY);
         if (distance > 0) {
             float speedX = (deltaX / distance) * Dusman_Speed_X ;
             float speedY = (deltaY / distance) * Dusman_Speed_Y;
@@ -111,11 +110,7 @@ public:
     }
 
     void Draw() {
-        if ((0 < (int)x) && ((int)x < GetScreenWidth()) && (0 < (int)y) && ((int)y < GetScreenHeight())) {
-            DrawCircle(x, y, radius, RED);  
-        } else {
-            ekrandisi = true;  
-        }
+        DrawCircle(x, y, radius, RED);  
     }
 
     bool CheckCollisionDusman(Dusman& dusman) {
@@ -125,18 +120,18 @@ public:
     }
 };
 
-void ResetGame(Player& player, vector<Dusman>& dusmanlar, vector<Bullet>& bullets, int& score, bool& gameOver) {
-    player.Player_X = 400;  // Oyuncu konumunu sıfırla
-    player.Player_Y = 550;  // Oyuncu konumunu sıfırla
-    score = 0;              // Skoru sıfırla
-    gameOver = false;       // Oyun bitişini sıfırla
+void ResetGame(Player& player, vector<Dusman>& dusmanlar, vector<Bullet>& bullets, int& score, bool& gameOver,int Screen_Width, int Screen_Height) {
+    player.Player_X = Screen_Width / 2;
+    player.Player_Y = Screen_Height / 2;
+    score = 0;
+    gameOver = false;       
 
-    dusmanlar.clear();  // Tüm düşmanları temizle
+    dusmanlar.clear();
     for (int i = 0; i < 10; ++i) {
         dusmanlar.push_back(Dusman(800 + (rand() % 400), 600 + (rand() % 300), 2, 2, 15));
     }
 
-    bullets.clear();  // Tüm mermileri temizle
+    bullets.clear(); 
 }
 
 int main() {
@@ -145,6 +140,7 @@ int main() {
     int Dusman_Sayisi = 10;
     int Dusman_Speed = 2;
     float Bullet_Speed = 25.0;
+    int MaxScore = 0;
 
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Enemy Follow Player Example");
     SetTargetFPS(60);
@@ -173,15 +169,20 @@ int main() {
         }
 
         if (gameOver) {
+            if (score > MaxScore)
+            {
+                MaxScore = score;
+            }
             BeginDrawing();
             ClearBackground(RAYWHITE);
+            DrawText(TextFormat("Max Score: %d", MaxScore), SCREEN_WIDTH / 2 - 100, SCREEN_HEIGHT / 2 + 200, 20, BLACK);
             DrawText("GAME OVER", SCREEN_WIDTH / 2 - 100, SCREEN_HEIGHT / 2, 30, RED);
             DrawText(TextFormat("Final Score: %d", score), SCREEN_WIDTH / 2 - 100, SCREEN_HEIGHT / 2 + 40, 20, BLACK);
             DrawText("Press R to Replay", SCREEN_WIDTH / 2 - 100, SCREEN_HEIGHT / 2 + 80, 20, BLACK);
             EndDrawing();
 
             if (IsKeyPressed(KEY_R)) {
-                ResetGame(player, dusmanlar, bullets, score, gameOver);  // Oyun sıfırlanır
+                ResetGame(player, dusmanlar, bullets, score, gameOver, SCREEN_WIDTH , SCREEN_HEIGHT);  // Oyun sıfırlanır
             }
 
             continue; 
@@ -205,6 +206,7 @@ int main() {
             bullet.Update();
         }
 
+        //mermileri olusturup ekranin disindayken veya düsmana carpinca silen kod
         for (auto it = bullets.begin(); it != bullets.end(); ) {
             bool hit = false;
             for (auto& dusman : dusmanlar) {
@@ -217,11 +219,17 @@ int main() {
             }
             if (hit) {
                 it = bullets.erase(it);  
-            } else {
+            }
+            else if ((0 > (int)it->x) || ((int)it->x > GetScreenWidth()) || (0 > (int)it->y) ||  ((int)it->y > GetScreenHeight())) {
+                it = bullets.erase(it);  
+            }
+             else {
                 ++it;  
             }
         }
 
+
+        //dusmanlari olusturan kod
         for (auto it = dusmanlar.begin(); it != dusmanlar.end(); ) {
             if (it->CheckCollision(player)) {
                 gameOver = true;  
