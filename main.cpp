@@ -2,7 +2,7 @@
 #include <vector>
 #include <raylib.h>
 #include <cmath>  // Mesafe hesaplama için
-
+#include <chrono> 
 
 using namespace std;
 
@@ -147,6 +147,10 @@ public:
 int main() {
     const int SCREEN_WIDTH = 800;
     const int SCREEN_HEIGHT = 600;
+    auto counter_start_time = std::chrono::high_resolution_clock::now();// Sayaç Başlangıcı
+
+    srand(time(nullptr));
+
 
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Enemy Follow Player Example");
     SetTargetFPS(60);
@@ -157,7 +161,36 @@ int main() {
 
     // Düşmanları vektöre ekle
     for (int i = 0; i < 15; ++i) {
-        dusmanlar.push_back(Dusman(rand() % SCREEN_WIDTH * 2 , rand() % SCREEN_HEIGHT * 2, 3, 3, 15));
+        //Burada random  doğma bölgesi ayarlandı
+        int rnd_field = 1 + rand() % 8;
+        switch (rnd_field)
+        {
+        case 1:
+            dusmanlar.push_back(Dusman(0 - rand() % 100  , 0 - rand() % 100, 3, 3, 15));
+            break;
+        case 2:
+            dusmanlar.push_back(Dusman(15 + rand() % SCREEN_WIDTH  , 0 - rand() % 100, 3, 3, 15));
+            break;
+        case 3:
+            dusmanlar.push_back(Dusman(0 - rand() % 100  , 15 + rand() % SCREEN_HEIGHT, 3, 3, 15));
+            break;
+        case 4:
+            dusmanlar.push_back(Dusman(0 - rand() % 100  , SCREEN_HEIGHT + rand() % 100, 3, 3, 15));
+            break;
+        case 5:
+            dusmanlar.push_back(Dusman(SCREEN_WIDTH + rand() % 100  , SCREEN_HEIGHT + rand() % 100, 3, 3, 15));
+            break;
+        case 6:
+            dusmanlar.push_back(Dusman(15 + rand() % SCREEN_WIDTH  , SCREEN_HEIGHT + rand() % 100, 3, 3, 15));
+            break;
+        case 7:
+            dusmanlar.push_back(Dusman(SCREEN_WIDTH + rand() % 100  , 15 + rand() % SCREEN_HEIGHT, 3, 3, 15));
+            break;
+        default:
+            dusmanlar.push_back(Dusman(SCREEN_WIDTH + rand() % 100  , SCREEN_HEIGHT + rand() % 100, 3, 3, 15));
+            break;
+        }
+        
     }
 
     bool gameOver = false;
@@ -195,10 +228,41 @@ int main() {
             dusman.Update(ball.ball_x, ball.ball_y, SCREEN_WIDTH, SCREEN_HEIGHT);
         }
 
-        if (dusmanlar.size() < 15)
+        auto counter_time = std::chrono::high_resolution_clock::now();
+        chrono::duration<double> duration_sec = counter_time-counter_start_time;
+        int enemy_count =(duration_sec.count()/15)*log(duration_sec.count()/15) ;//t*log(t) tane düşman 
+        
+        if (dusmanlar.size() < enemy_count || dusmanlar.size() < 15)
         {
-            dusmanlar.push_back(Dusman(rand() % SCREEN_WIDTH * 2 , rand() % SCREEN_HEIGHT * 2, 3, 3, 15));
-        }
+            int rnd_field = 1 + rand() % 8;
+            switch (rnd_field)
+            {
+            case 1:
+                dusmanlar.push_back(Dusman(0 - rand() % 100  , 0 - rand() % 100, 3, 3, 15));
+                break;
+            case 2:
+                dusmanlar.push_back(Dusman(15 + rand() % SCREEN_WIDTH  , 0 - rand() % 100, 3, 3, 15));
+                break;
+            case 3:
+                dusmanlar.push_back(Dusman(0 - rand() % 100  , 15 + rand() % SCREEN_HEIGHT, 3, 3, 15));
+                break;
+            case 4:
+                dusmanlar.push_back(Dusman(0 - rand() % 100  , SCREEN_HEIGHT + rand() % 100, 3, 3, 15));
+                break;
+            case 5:
+                dusmanlar.push_back(Dusman(SCREEN_WIDTH + rand() % 100  , SCREEN_HEIGHT + rand() % 100, 3, 3, 15));
+                break;
+            case 6:
+                dusmanlar.push_back(Dusman(15 + rand() % SCREEN_WIDTH  , SCREEN_HEIGHT + rand() % 100, 3, 3, 15));
+                break;
+            case 7:
+                dusmanlar.push_back(Dusman(SCREEN_WIDTH + rand() % 100  , 15 + rand() % SCREEN_HEIGHT, 3, 3, 15));
+                break;
+            default:
+                dusmanlar.push_back(Dusman(SCREEN_WIDTH + rand() % 100  , SCREEN_HEIGHT + rand() % 100, 3, 3, 15));
+                break;
+            }
+        } 
         
 
         // Mermi ateşleme (Mouse sol tuşu ile)
