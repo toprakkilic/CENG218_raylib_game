@@ -229,7 +229,6 @@ int main() {
         auto counter_time = std::chrono::high_resolution_clock::now();
         chrono::duration<double> duration_sec = counter_time-counter_start_time;
         int enemy_count =(duration_sec.count()/15)*log(duration_sec.count()/15) ;//t*log(t) tane düşman 
-
         if (dusmanlar.size() < Dusman_Sayisi || dusmanlar.size() < enemy_count) {
             int rnd_field = 1 + rand() % 8;
             switch (rnd_field)
