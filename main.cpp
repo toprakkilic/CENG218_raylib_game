@@ -1,103 +1,90 @@
 #include <iostream>
 #include <vector>
 #include <raylib.h>
-#include <cmath>  // Mesafe hesaplama için
+#include <cmath>  
 #include <chrono> 
 
 using namespace std;
 
-class Ball {
+class Player {
 public:
-    int ball_x;
-    int ball_y;
-    int ball_speed_x;
-    int ball_speed_y;
-    int ball_radius;
+    int Player_X;
+    int Player_Y;
+    int Player_Speed_X;
+    int Player_Speed_Y;
+    int Player_Radius;
 
-    Ball(int startX, int startY, int startSpeedX, int startSpeedY, int ballRadius) 
-        : ball_x(startX), ball_y(startY), ball_speed_x(startSpeedX), ball_speed_y(startSpeedY), ball_radius(ballRadius) {}
+    Player(int startX, int startY, int startSpeedX, int startSpeedY) 
+        : Player_X(startX), Player_Y(startY), Player_Speed_X(startSpeedX), Player_Speed_Y(startSpeedY), Player_Radius(15) {}
 
     void Update(int SCREEN_WIDTH, int SCREEN_HEIGHT) {
         if (IsKeyDown(KEY_W)) {
-            if (ball_y - ball_radius > 0) {
-                ball_y -= ball_speed_y;
+            if (Player_Y - Player_Radius > 0) {
+                Player_Y -= Player_Speed_Y;
             }
         }
-       
+
         if (IsKeyDown(KEY_S)) {
-            if (ball_y + ball_radius < SCREEN_HEIGHT) {
-                ball_y += ball_speed_y;
+            if (Player_Y + Player_Radius < SCREEN_HEIGHT) {
+                Player_Y += Player_Speed_Y;
             }
         }
 
         if (IsKeyDown(KEY_D)) {
-            if (ball_x + ball_radius < SCREEN_WIDTH) { 
-                ball_x += ball_speed_x;
+            if (Player_X + Player_Radius < SCREEN_WIDTH) { 
+                Player_X += Player_Speed_X;
             }
         }
 
         if (IsKeyDown(KEY_A)) {
-            if (ball_x - ball_radius > 0) { 
-                ball_x -= ball_speed_x;
+            if (Player_X - Player_Radius > 0) { 
+                Player_X -= Player_Speed_X;
             }
         }
     }
 
     void Draw() {
-        DrawCircle(ball_x, ball_y, ball_radius, BLUE);
+        DrawCircle(Player_X, Player_Y, Player_Radius, BLUE);
     }
 };
 
 class Dusman {
 public:
-    int ball_x;
-    int ball_y;
-    int ball_speed_x;
-    int ball_speed_y;
-    int ball_radius;
+    int Dusman_X;
+    int Dusman_Y;
+    int Dusman_Speed_X;
+    int Dusman_Speed_Y;
+    int Dusman_Radius;
     bool alive = true;
 
     Dusman(int startX, int startY, int startSpeedX, int startSpeedY, int ballRadius) 
-        : ball_x(startX), ball_y(startY), ball_speed_x(startSpeedX), ball_speed_y(startSpeedY), ball_radius(ballRadius) {}
+        : Dusman_X(startX), Dusman_Y(startY), Dusman_Speed_X(startSpeedX), Dusman_Speed_Y(startSpeedY), Dusman_Radius(ballRadius) {}
 
     void Update(int player_x, int player_y, int SCREEN_WIDTH, int SCREEN_HEIGHT) {
-        if (!alive)
-        {
-            return;
-        }
         
-        // Düşman, oyuncuyu kovalayacak
-        int deltaX = player_x - ball_x;  // Yatay mesafe farkı
-        int deltaY = player_y - ball_y;  // Dikey mesafe farkı
+        int deltaX = player_x - Dusman_X;
+        int deltaY = player_y - Dusman_Y;
 
-        // Yönü normalize et (yani hız vektörünü oluştur)
-        float distance = sqrt(deltaX * deltaX + deltaY * deltaY);  // İki nokta arasındaki mesafe
-        if (distance > 0) {  // Mesafe sıfır değilse, hareket et
-            float speedX = (deltaX / distance) * ball_speed_x ;  // X yönünde hız
-            float speedY = (deltaY / distance) * ball_speed_y;  // Y yönünde hız
+        float distance = sqrt(deltaX * deltaX + deltaY * deltaY);
+        if (distance > 0) {
+            float speedX = (deltaX / distance) * Dusman_Speed_X ;
+            float speedY = (deltaY / distance) * Dusman_Speed_Y;
 
-            // Düşmanı bu hızlarla hareket ettir
-            ball_x += speedX;
-            ball_y += speedY;
+            Dusman_X += speedX;
+            Dusman_Y += speedY;
         }
     }
 
     void Draw() {
-        if (!alive)
-        {
-            return;
-        }
-        
-        DrawCircle(ball_x, ball_y, ball_radius, RED);  // Düşmanı kırmızı çizer
+        if (!alive) { return; }
+        DrawCircle(Dusman_X, Dusman_Y, Dusman_Radius, RED);
     }
 
-    bool CheckCollision(Ball& player) {
-        // Raylib'in CheckCollisionCircles fonksiyonunu kullanarak çarpışmayı kontrol et
-        Vector2 enemyCenter = { (float)ball_x, (float)ball_y };
-        Vector2 playerCenter = { (float)player.ball_x, (float)player.ball_y };
-        return CheckCollisionCircles(playerCenter, player.ball_radius, enemyCenter, ball_radius);  // Çarpışma kontrolü
+    bool CheckCollision(Player& player) {
+        Vector2 enemyCenter = { (float)Dusman_X, (float)Dusman_Y };
+        Vector2 playerCenter = { (float)player.Player_X, (float)player.Player_Y };
+        return CheckCollisionCircles(playerCenter, player.Player_Radius, enemyCenter, Dusman_Radius);
     }
-
 };
 
 // Mermi sınıfı
@@ -108,220 +95,201 @@ public:
     int radius;
     bool ekrandisi = false;
 
-    // Parametreli yapıcı
     Bullet(float startX, float startY, float targetX, float targetY, float bulletSpeed, int bulletRadius)
         : x(startX), y(startY), radius(bulletRadius) {
 
-        // Mermiyi mouse'un olduğu yere doğru yönlendir
         float deltaX = targetX - startX;
         float deltaY = targetY - startY;
 
-        // Yönü normalize et
         float length = sqrt(deltaX * deltaX + deltaY * deltaY);
-        speedX = (deltaX / length) * bulletSpeed;  // Hız vektörünü normalize et
-        speedY = (deltaY / length) * bulletSpeed;  // Hız vektörünü normalize et
+        speedX = (deltaX / length) * bulletSpeed;  
+        speedY = (deltaY / length) * bulletSpeed;  
     }
 
     void Update() {
-        // Mermi hedefe doğru hareket eder
         x += speedX;
         y += speedY;
     }
 
     void Draw() {
-        if ((0 < (int)x) && ((int)x < GetScreenWidth()) && (0 < (int)y) && ((int)y < GetScreenHeight())) {
-            DrawCircle(x, y, radius, RED);  // Mermiyi kırmızı çizer
-        } else {
-            ekrandisi = true;  // Ekranın dışında kalırsa, mermiyi çizme
-        }
+        DrawCircle(x, y, radius, RED);  
     }
 
     bool CheckCollisionDusman(Dusman& dusman) {
-        // Raylib'in CheckCollisionCircles fonksiyonunu kullanarak çarpışmayı kontrol et
-        Vector2 enemyCenter = { (float)dusman.ball_x, (float)dusman.ball_y };
+        Vector2 enemyCenter = { (float)dusman.Dusman_X, (float)dusman.Dusman_Y };
         Vector2 bulletCenter = { (float)x, (float)y };
-        return CheckCollisionCircles(bulletCenter,radius, enemyCenter, dusman.ball_radius);  // Çarpışma kontrolü
+        return CheckCollisionCircles(bulletCenter, radius, enemyCenter, dusman.Dusman_Radius);
     }
 };
 
+void dusmanEkle(std::vector<Dusman>& dusmanlar, int SCREEN_WIDTH, int SCREEN_HEIGHT) {
+    int rnd_field = 1 + rand() % 8;  // Ekran dışındaki rastgele bir konum için ekranın dışı 8 parçaya bölündü
+    switch (rnd_field) {
+    case 1:
+        dusmanlar.push_back(Dusman(0 - rand() % 100, 0 - rand() % 100, 3, 3, 15));
+        break;
+    case 2:
+        dusmanlar.push_back(Dusman(15 + rand() % SCREEN_WIDTH, 0 - rand() % 100, 3, 3, 15));
+        break;
+    case 3:
+        dusmanlar.push_back(Dusman(0 - rand() % 100, 15 + rand() % SCREEN_HEIGHT, 3, 3, 15));
+        break;
+    case 4:
+        dusmanlar.push_back(Dusman(0 - rand() % 100, SCREEN_HEIGHT + rand() % 100, 3, 3, 15));
+        break;
+    case 5:
+        dusmanlar.push_back(Dusman(SCREEN_WIDTH + rand() % 100, SCREEN_HEIGHT + rand() % 100, 3, 3, 15));
+        break;
+    case 6:
+        dusmanlar.push_back(Dusman(15 + rand() % SCREEN_WIDTH, SCREEN_HEIGHT + rand() % 100, 3, 3, 15));
+        break;
+    case 7:
+        dusmanlar.push_back(Dusman(SCREEN_WIDTH + rand() % 100, 15 + rand() % SCREEN_HEIGHT, 3, 3, 15));
+        break;
+    default:
+        dusmanlar.push_back(Dusman(SCREEN_WIDTH + rand() % 100, SCREEN_HEIGHT + rand() % 100, 3, 3, 15));
+        break;
+    }
+}
+
+void ResetGame(Player& player, vector<Dusman>& dusmanlar, vector<Bullet>& bullets, int& score, bool& gameOver,int Screen_Width, int Screen_Height) {
+    player.Player_X = Screen_Width / 2;
+    player.Player_Y = Screen_Height / 2;
+    score = 0;
+    gameOver = false;       
+
+    dusmanlar.clear();
+    for (int i = 0; i < 10; ++i) {
+        dusmanEkle(dusmanlar, Screen_Width, Screen_Height);
+    }
+
+    bullets.clear(); 
+}
+
 int main() {
-    const int SCREEN_WIDTH = 800;
-    const int SCREEN_HEIGHT = 600;
+    const int SCREEN_WIDTH = 1920;
+    const int SCREEN_HEIGHT = 1080;
+    int Dusman_Sayisi = 15;
+    float Bullet_Speed = 25.0;
+    int MaxScore = 0;
+
     auto counter_start_time = std::chrono::high_resolution_clock::now();// Sayaç Başlangıcı
-
     srand(time(nullptr));
-
 
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Enemy Follow Player Example");
     SetTargetFPS(60);
 
-    Ball ball(SCREEN_WIDTH / 2, SCREEN_HEIGHT - 50, 5, 5, 15);  // Oyuncu topu
-    vector<Dusman> dusmanlar;  // Düşmanlar vektörü
-    vector<Bullet> bullets; // Mermiler
-
-    // Düşmanları vektöre ekle
-    for (int i = 0; i < 15; ++i) {
-        //Burada random  doğma bölgesi ayarlandı
-        int rnd_field = 1 + rand() % 8;
-        switch (rnd_field)
-        {
-        case 1:
-            dusmanlar.push_back(Dusman(0 - rand() % 100  , 0 - rand() % 100, 3, 3, 15));
-            break;
-        case 2:
-            dusmanlar.push_back(Dusman(15 + rand() % SCREEN_WIDTH  , 0 - rand() % 100, 3, 3, 15));
-            break;
-        case 3:
-            dusmanlar.push_back(Dusman(0 - rand() % 100  , 15 + rand() % SCREEN_HEIGHT, 3, 3, 15));
-            break;
-        case 4:
-            dusmanlar.push_back(Dusman(0 - rand() % 100  , SCREEN_HEIGHT + rand() % 100, 3, 3, 15));
-            break;
-        case 5:
-            dusmanlar.push_back(Dusman(SCREEN_WIDTH + rand() % 100  , SCREEN_HEIGHT + rand() % 100, 3, 3, 15));
-            break;
-        case 6:
-            dusmanlar.push_back(Dusman(15 + rand() % SCREEN_WIDTH  , SCREEN_HEIGHT + rand() % 100, 3, 3, 15));
-            break;
-        case 7:
-            dusmanlar.push_back(Dusman(SCREEN_WIDTH + rand() % 100  , 15 + rand() % SCREEN_HEIGHT, 3, 3, 15));
-            break;
-        default:
-            dusmanlar.push_back(Dusman(SCREEN_WIDTH + rand() % 100  , SCREEN_HEIGHT + rand() % 100, 3, 3, 15));
-            break;
-        }
-        
+    Player player(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, 5, 5);  
+    vector<Dusman> dusmanlar;  
+    vector<Bullet> bullets; 
+    for (int i = 0 ; i < 15; i++){
+        dusmanEkle(dusmanlar, SCREEN_WIDTH, SCREEN_HEIGHT);
     }
 
     bool gameOver = false;
-    int score = 0;  // Skor başlangıçta sıfır
-    float timer = 0.0f;  // Zamanlayıcı (her saniyede skor artacak)
+    int score = 0;  
+    float timer = 0.0f;
 
     while (!WindowShouldClose()) {
-        Vector2 mousePos = GetMousePosition(); // Mouse pozisyonu
+        Vector2 mousePos = GetMousePosition();  
 
-        // Zamanı güncelle (her frame'de)
         if (!gameOver) {
-            timer += GetFrameTime();  // Zamanlayıcıyı arttır
-
-            // Her saniyede bir skoru artır
+            timer += GetFrameTime();
             if (timer >= 1.0f) {
-                score++;  // Skoru bir artır
-                timer = 0.0f;  // Zamanı sıfırla
+                score++;  
+                timer = 0.0f;  
             }
         }
 
         if (gameOver) {
+            if (score > MaxScore)
+            {
+                MaxScore = score;
+            }
             BeginDrawing();
             ClearBackground(RAYWHITE);
+            DrawText(TextFormat("Max Score: %d", MaxScore), SCREEN_WIDTH / 2 - 100, SCREEN_HEIGHT / 2 + 200, 20, BLACK);
             DrawText("GAME OVER", SCREEN_WIDTH / 2 - 100, SCREEN_HEIGHT / 2, 30, RED);
             DrawText(TextFormat("Final Score: %d", score), SCREEN_WIDTH / 2 - 100, SCREEN_HEIGHT / 2 + 40, 20, BLACK);
+            DrawText("Press R to Replay", SCREEN_WIDTH / 2 - 100, SCREEN_HEIGHT / 2 + 80, 20, BLACK);
             EndDrawing();
-            continue;  // Eğer oyun bitmişse, döngüye devam etme
+
+            if (IsKeyPressed(KEY_R)) {
+                ResetGame(player, dusmanlar, bullets, score, gameOver, SCREEN_WIDTH , SCREEN_HEIGHT);  // Oyun sıfırlanır
+            }
+
+            continue; 
         }
 
-        // Oyuncu hareketi
-        ball.Update(SCREEN_WIDTH, SCREEN_HEIGHT);
+        player.Update(SCREEN_WIDTH, SCREEN_HEIGHT);
 
-        // Düşman hareketi (oyuncuya doğru)
         for (auto& dusman : dusmanlar) {
-            dusman.Update(ball.ball_x, ball.ball_y, SCREEN_WIDTH, SCREEN_HEIGHT);
+            dusman.Update(player.Player_X, player.Player_Y, SCREEN_WIDTH, SCREEN_HEIGHT);
         }
 
         auto counter_time = std::chrono::high_resolution_clock::now();
         chrono::duration<double> duration_sec = counter_time-counter_start_time;
-        int enemy_count =(duration_sec.count()/15)*log(duration_sec.count()/15) ;//t*log(t) tane düşman 
+        int enemy_count = Dusman_Sayisi + (duration_sec.count()/15)*log(duration_sec.count()/15) ;//t*log(t) tane düşman 
         
-        if (dusmanlar.size() < enemy_count || dusmanlar.size() < 15)
-        {
-            int rnd_field = 1 + rand() % 8;
-            switch (rnd_field)
-            {
-            case 1:
-                dusmanlar.push_back(Dusman(0 - rand() % 100  , 0 - rand() % 100, 3, 3, 15));
-                break;
-            case 2:
-                dusmanlar.push_back(Dusman(15 + rand() % SCREEN_WIDTH  , 0 - rand() % 100, 3, 3, 15));
-                break;
-            case 3:
-                dusmanlar.push_back(Dusman(0 - rand() % 100  , 15 + rand() % SCREEN_HEIGHT, 3, 3, 15));
-                break;
-            case 4:
-                dusmanlar.push_back(Dusman(0 - rand() % 100  , SCREEN_HEIGHT + rand() % 100, 3, 3, 15));
-                break;
-            case 5:
-                dusmanlar.push_back(Dusman(SCREEN_WIDTH + rand() % 100  , SCREEN_HEIGHT + rand() % 100, 3, 3, 15));
-                break;
-            case 6:
-                dusmanlar.push_back(Dusman(15 + rand() % SCREEN_WIDTH  , SCREEN_HEIGHT + rand() % 100, 3, 3, 15));
-                break;
-            case 7:
-                dusmanlar.push_back(Dusman(SCREEN_WIDTH + rand() % 100  , 15 + rand() % SCREEN_HEIGHT, 3, 3, 15));
-                break;
-            default:
-                dusmanlar.push_back(Dusman(SCREEN_WIDTH + rand() % 100  , SCREEN_HEIGHT + rand() % 100, 3, 3, 15));
-                break;
-            }
-        } 
-        
-
-        // Mermi ateşleme (Mouse sol tuşu ile)
-        if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
-            // Mouse tuşuna basıldığında, topun biraz üstünde bir mermi ateşle
-            bullets.push_back(Bullet(ball.ball_x, ball.ball_y - ball.ball_radius, mousePos.x, mousePos.y, 25.0f, 5));
+        if (dusmanlar.size() < enemy_count) {
+            dusmanEkle(dusmanlar, SCREEN_WIDTH, SCREEN_HEIGHT);
         }
 
-        // Mermileri güncelle
+        if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+            bullets.push_back(Bullet(player.Player_X, player.Player_Y - player.Player_Radius, mousePos.x, mousePos.y,Bullet_Speed, 5));
+        }
+
         for (auto& bullet : bullets) {
             bullet.Update();
         }
 
-        // Çarpışma kontrolü ve düşmanları vektörden silme
+        //mermileri olusturup ekranin disindayken veya düsmana carpinca silen kod
         for (auto it = bullets.begin(); it != bullets.end(); ) {
             bool hit = false;
             for (auto& dusman : dusmanlar) {
                 if (it->CheckCollisionDusman(dusman)) {
-                    dusman.alive = false;  // Düşmanı öldür
+                    dusman.alive = false;
                     score += 10;
                     hit = true;
-                    break;  // Çarpışma bulduktan sonra diğer düşmanlarla kontrol etmeye gerek yok
+                    break;  
                 }
             }
             if (hit) {
-                it = bullets.erase(it);  // Çarpışan mermiyi vektörden sil
-            } else {
-                ++it;  // Mermi ekran içinde ve çarpışma yoksa, bir sonraki mermiye geç
+                it = bullets.erase(it);  
             }
-            
+            else if ((0 > (int)it->x) || ((int)it->x > GetScreenWidth()) || (0 > (int)it->y) ||  ((int)it->y > GetScreenHeight())) {
+                it = bullets.erase(it);  
+            }
+             else {
+                ++it;  
+            }
         }
 
-        // Düşmanları vektörden silme (alive == false)
+
+        //dusmanlari olusturan kod
         for (auto it = dusmanlar.begin(); it != dusmanlar.end(); ) {
-            if (it->CheckCollision(ball)) {
-                gameOver = true;  // Çarpışma olduğunda oyun biter
+            if (it->CheckCollision(player)) {
+                gameOver = true;  
             }
             if (!it->alive) {
-                it = dusmanlar.erase(it);  // Düşmanı vektörden sil
+                it = dusmanlar.erase(it);  
             } else {
-                ++it;  // Bir sonraki düşmana geç
+                ++it;  
             }
         }
 
-        // Ekranı çizme işlemi
         BeginDrawing();
         ClearBackground(RAYWHITE);
 
-        ball.Draw();  // Oyuncu topunu çiz
+        player.Draw();  
         for (auto& dusman : dusmanlar) {
-            dusman.Draw();  // Düşmanları çiz
+            dusman.Draw();  
         }
 
-        // Eğer oyun bitmemişse skoru göster
         if (!gameOver) {
             DrawText(TextFormat("Score: %d", score), 10, 10, 20, BLACK);
         }
 
-        // Ateşlenen mermileri çiz
         for (auto& bullet : bullets) {
             bullet.Draw();
         }
