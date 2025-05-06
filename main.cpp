@@ -122,6 +122,36 @@ public:
     }
 };
 
+void dusmanEkle(std::vector<Dusman>& dusmanlar, int SCREEN_WIDTH, int SCREEN_HEIGHT) {
+    int rnd_field = 1 + rand() % 8;  // Ekran dışındaki rastgele bir konum için ekranın dışı 8 parçaya bölündü
+    switch (rnd_field) {
+    case 1:
+        dusmanlar.push_back(Dusman(0 - rand() % 100, 0 - rand() % 100, 3, 3, 15));
+        break;
+    case 2:
+        dusmanlar.push_back(Dusman(15 + rand() % SCREEN_WIDTH, 0 - rand() % 100, 3, 3, 15));
+        break;
+    case 3:
+        dusmanlar.push_back(Dusman(0 - rand() % 100, 15 + rand() % SCREEN_HEIGHT, 3, 3, 15));
+        break;
+    case 4:
+        dusmanlar.push_back(Dusman(0 - rand() % 100, SCREEN_HEIGHT + rand() % 100, 3, 3, 15));
+        break;
+    case 5:
+        dusmanlar.push_back(Dusman(SCREEN_WIDTH + rand() % 100, SCREEN_HEIGHT + rand() % 100, 3, 3, 15));
+        break;
+    case 6:
+        dusmanlar.push_back(Dusman(15 + rand() % SCREEN_WIDTH, SCREEN_HEIGHT + rand() % 100, 3, 3, 15));
+        break;
+    case 7:
+        dusmanlar.push_back(Dusman(SCREEN_WIDTH + rand() % 100, 15 + rand() % SCREEN_HEIGHT, 3, 3, 15));
+        break;
+    default:
+        dusmanlar.push_back(Dusman(SCREEN_WIDTH + rand() % 100, SCREEN_HEIGHT + rand() % 100, 3, 3, 15));
+        break;
+    }
+}
+
 void ResetGame(Player& player, vector<Dusman>& dusmanlar, vector<Bullet>& bullets, int& score, bool& gameOver,int Screen_Width, int Screen_Height) {
     player.Player_X = Screen_Width / 2;
     player.Player_Y = Screen_Height / 2;
@@ -130,17 +160,16 @@ void ResetGame(Player& player, vector<Dusman>& dusmanlar, vector<Bullet>& bullet
 
     dusmanlar.clear();
     for (int i = 0; i < 10; ++i) {
-        dusmanlar.push_back(Dusman(800 + (rand() % 400), 600 + (rand() % 300), 2, 2, 15));
+        dusmanEkle(dusmanlar, Screen_Width, Screen_Height);
     }
 
     bullets.clear(); 
 }
 
 int main() {
-    const int SCREEN_WIDTH = 800;
-    const int SCREEN_HEIGHT = 600;
+    const int SCREEN_WIDTH = 1920;
+    const int SCREEN_HEIGHT = 1080;
     int Dusman_Sayisi = 15;
-    int Dusman_Speed = 2;
     float Bullet_Speed = 25.0;
     int MaxScore = 0;
 
@@ -150,39 +179,11 @@ int main() {
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Enemy Follow Player Example");
     SetTargetFPS(60);
 
-    Player player(SCREEN_WIDTH / 2, SCREEN_HEIGHT - 50, 5, 5);  
+    Player player(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, 5, 5);  
     vector<Dusman> dusmanlar;  
     vector<Bullet> bullets; 
-
-    for (int i = 0; i < Dusman_Sayisi; ++i) {
-        int rnd_field = 1 + rand() % 8;//Ekran dışındaki rastgele bir konum için ekranın dışı 8 parçaya bölündü
-        switch (rnd_field)
-        {
-        case 1:
-            dusmanlar.push_back(Dusman(0 - rand() % 100  , 0 - rand() % 100, 3, 3, 15));
-            break;
-        case 2:
-            dusmanlar.push_back(Dusman(15 + rand() % SCREEN_WIDTH  , 0 - rand() % 100, 3, 3, 15));
-            break;
-        case 3:
-            dusmanlar.push_back(Dusman(0 - rand() % 100  , 15 + rand() % SCREEN_HEIGHT, 3, 3, 15));
-            break;
-        case 4:
-            dusmanlar.push_back(Dusman(0 - rand() % 100  , SCREEN_HEIGHT + rand() % 100, 3, 3, 15));
-            break;
-        case 5:
-            dusmanlar.push_back(Dusman(SCREEN_WIDTH + rand() % 100  , SCREEN_HEIGHT + rand() % 100, 3, 3, 15));
-            break;
-        case 6:
-            dusmanlar.push_back(Dusman(15 + rand() % SCREEN_WIDTH  , SCREEN_HEIGHT + rand() % 100, 3, 3, 15));
-            break;
-        case 7:
-            dusmanlar.push_back(Dusman(SCREEN_WIDTH + rand() % 100  , 15 + rand() % SCREEN_HEIGHT, 3, 3, 15));
-            break;
-        default:
-            dusmanlar.push_back(Dusman(SCREEN_WIDTH + rand() % 100  , SCREEN_HEIGHT + rand() % 100, 3, 3, 15));
-            break;
-        }
+    for (int i = 0 ; i < 15; i++){
+        dusmanEkle(dusmanlar, SCREEN_WIDTH, SCREEN_HEIGHT);
     }
 
     bool gameOver = false;
@@ -228,37 +229,10 @@ int main() {
 
         auto counter_time = std::chrono::high_resolution_clock::now();
         chrono::duration<double> duration_sec = counter_time-counter_start_time;
-        int enemy_count =(duration_sec.count()/15)*log(duration_sec.count()/15) ;//t*log(t) tane düşman 
+        int enemy_count = Dusman_Sayisi + (duration_sec.count()/15)*log(duration_sec.count()/15) ;//t*log(t) tane düşman 
         
-        if (dusmanlar.size() < Dusman_Sayisi || dusmanlar.size() < enemy_count) {
-            int rnd_field = 1 + rand() % 8;
-            switch (rnd_field)
-            {
-            case 1:
-                dusmanlar.push_back(Dusman(0 - rand() % 100  , 0 - rand() % 100, 3, 3, 15));
-                break;
-            case 2:
-                dusmanlar.push_back(Dusman(15 + rand() % SCREEN_WIDTH  , 0 - rand() % 100, 3, 3, 15));
-                break;
-            case 3:
-                dusmanlar.push_back(Dusman(0 - rand() % 100  , 15 + rand() % SCREEN_HEIGHT, 3, 3, 15));
-                break;
-            case 4:
-                dusmanlar.push_back(Dusman(0 - rand() % 100  , SCREEN_HEIGHT + rand() % 100, 3, 3, 15));
-                break;
-            case 5:
-                dusmanlar.push_back(Dusman(SCREEN_WIDTH + rand() % 100  , SCREEN_HEIGHT + rand() % 100, 3, 3, 15));
-                break;
-            case 6:
-                dusmanlar.push_back(Dusman(15 + rand() % SCREEN_WIDTH  , SCREEN_HEIGHT + rand() % 100, 3, 3, 15));
-                break;
-            case 7:
-                dusmanlar.push_back(Dusman(SCREEN_WIDTH + rand() % 100  , 15 + rand() % SCREEN_HEIGHT, 3, 3, 15));
-                break;
-            default:
-                dusmanlar.push_back(Dusman(SCREEN_WIDTH + rand() % 100  , SCREEN_HEIGHT + rand() % 100, 3, 3, 15));
-                break;
-            }
+        if (dusmanlar.size() < enemy_count) {
+            dusmanEkle(dusmanlar, SCREEN_WIDTH, SCREEN_HEIGHT);
         }
 
         if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
