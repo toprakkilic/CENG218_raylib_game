@@ -136,20 +136,94 @@ void ResetGame(Player& player, vector<Dusman>& dusmanlar, vector<Bullet>& bullet
     bullets.clear(); 
 }
 
+void ShowMainMenu(bool& gameStarted) {
+    while (!WindowShouldClose()) {
+        BeginDrawing();
+        ClearBackground(RAYWHITE);
+
+        // Ana menü başlık
+        DrawText("MAIN MENU", 300, 100, 30, BLACK);
+        
+        // Butonlar
+        Rectangle startButton = { 270, 180, 260, 50 };  // Start butonunun alanı
+        Rectangle exitButton = { 270, 250, 260, 50 };   // Exit butonunun alanı
+        
+        // Start butonunu çiz
+        DrawRectangleRec(startButton, BLUE);
+        DrawText("Start", 280, 195, 20, WHITE);
+        
+        // Exit butonunu çiz
+        DrawRectangleRec(exitButton, RED);
+        DrawText("Exit", 280, 265, 20, WHITE);
+
+        // Start butonuna tıklama kontrolü
+        if (CheckCollisionPointRec(GetMousePosition(), startButton) && IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+            gameStarted = true;
+            break;  // Oyunu başlat
+        }
+
+        // Exit butonuna tıklama kontrolü
+        if (CheckCollisionPointRec(GetMousePosition(), exitButton) && IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+            CloseWindow(); // Oyunu kapat
+            break;
+        }
+
+        EndDrawing();
+    }
+}
+
+void ShowEndMenu(bool& status, int score, int maxScore) {
+    while (!WindowShouldClose()) {
+        BeginDrawing();
+        ClearBackground(RAYWHITE);
+
+        // Ana menü başlık
+        DrawText("Game Ended", 300, 100, 30, BLACK);
+        
+        // Butonlar
+        Rectangle restartButton = { 270, 180, 260, 50 };  // Start butonunun alanı
+        Rectangle exitButton = { 270, 250, 260, 50 };   // Exit butonunun alanı
+        
+        DrawText(TextFormat("Max Score: %d", maxScore),280,425, 20, BLACK);
+        DrawText(TextFormat(" Score: %d", score),280,335, 20, BLACK);
+        // Start butonunu çiz
+        DrawRectangleRec(restartButton, BLUE);
+        DrawText("restart", 280, 195, 20, WHITE);
+        
+        // Exit butonunu çiz
+        DrawRectangleRec(exitButton, RED);
+        DrawText("Exit", 280, 265, 20, WHITE);
+
+        // Start butonuna tıklama kontrolü
+        if (CheckCollisionPointRec(GetMousePosition(), restartButton) && IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+            status = true;
+            break;  // Oyunu başlat
+        }
+
+        // Exit butonuna tıklama kontrolü
+        if (CheckCollisionPointRec(GetMousePosition(), exitButton) && IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+            break;
+        }
+
+        EndDrawing();
+    }
+}
+
+
+
+
 int main() {
     const int SCREEN_WIDTH = 800;
     const int SCREEN_HEIGHT = 600;
-    int Dusman_Sayisi = 15;
+    int Dusman_Sayisi = 2;
     int Dusman_Speed = 2;
     float Bullet_Speed = 25.0;
     int MaxScore = 0;
 
     auto counter_start_time = std::chrono::high_resolution_clock::now();// Sayaç Başlangıcı
     srand(time(nullptr));
-
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Enemy Follow Player Example");
     SetTargetFPS(60);
-
     Player player(SCREEN_WIDTH / 2, SCREEN_HEIGHT - 50, 5, 5);  
     vector<Dusman> dusmanlar;  
     vector<Bullet> bullets; 
@@ -184,12 +258,14 @@ int main() {
             break;
         }
     }
+    bool gameStarted = false;
+    ShowMainMenu(gameStarted);
 
     bool gameOver = false;
     int score = 0;  
     float timer = 0.0f;
 
-    while (!WindowShouldClose()) {
+    while (!WindowShouldClose() && gameStarted) {
         Vector2 mousePos = GetMousePosition();  
 
         if (!gameOver) {
@@ -205,19 +281,16 @@ int main() {
             {
                 MaxScore = score;
             }
-            BeginDrawing();
-            ClearBackground(RAYWHITE);
-            DrawText(TextFormat("Max Score: %d", MaxScore), SCREEN_WIDTH / 2 - 100, SCREEN_HEIGHT / 2 + 200, 20, BLACK);
-            DrawText("GAME OVER", SCREEN_WIDTH / 2 - 100, SCREEN_HEIGHT / 2, 30, RED);
-            DrawText(TextFormat("Final Score: %d", score), SCREEN_WIDTH / 2 - 100, SCREEN_HEIGHT / 2 + 40, 20, BLACK);
-            DrawText("Press R to Replay", SCREEN_WIDTH / 2 - 100, SCREEN_HEIGHT / 2 + 80, 20, BLACK);
-            EndDrawing();
+            bool status = 0;
 
-            if (IsKeyPressed(KEY_R)) {
+            ShowEndMenu(status, score, MaxScore);
+
+            if (status)
+            {
                 ResetGame(player, dusmanlar, bullets, score, gameOver, SCREEN_WIDTH , SCREEN_HEIGHT);  // Oyun sıfırlanır
+            }else{
+                CloseWindow();
             }
-
-            continue; 
         }
 
         player.Update(SCREEN_WIDTH, SCREEN_HEIGHT);
