@@ -17,7 +17,8 @@
 		"vector": "cpp",
 		"string_view": "cpp",
 		"initializer_list": "cpp",
-		"cmath": "cpp"
+		"cmath": "cpp",
+		"chrono": "cpp"
 	},
 	"makefile.configureOnOpen": false
 }
