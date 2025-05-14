@@ -240,9 +240,6 @@ void ResetGame(Player& player, vector<Dusman>& dusmanlar, vector<Bullet>& bullet
     player.boostTimer = 5.0f;
 
     dusmanlar.clear();
-    for (int i = 0; i < 10; ++i) {
-        dusmanlar.push_back(Dusman(800 + (rand() % 400), 600 + (rand() % 300), 2, 2, 15));
-    }
 
     bullets.clear(); 
 }
@@ -275,7 +272,7 @@ int main() {
 
     SetTargetFPS(60);
     srand(time(nullptr));
-    Player player(SCREEN_WIDTH / 2, SCREEN_HEIGHT - 50, 5, 5);
+    Player player(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, 5, 5);
     vector<Dusman> dusmanlar;
     vector<Bullet> bullets;
 
