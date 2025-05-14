@@ -17,6 +17,20 @@ Sound gameoverSound;
 
 class Player {
 public:
+    Texture2D textureRight;
+    Texture2D textureLeft;
+    Texture2D textureIdleRight;
+    Texture2D textureIdleLeft;
+
+    int currentFrame;
+    float timer;
+    float frameSpeedIdle = 0.2f;// Idle animasyon hızı
+    int frameCount;
+    bool isMoving = false;
+    bool isIdle;
+    bool facingRight;
+    int idleCount;
+
     int Player_X;
     int Player_Y;
     int Player_Speed_X;
@@ -25,18 +39,39 @@ public:
     bool isBoosted = true;
     float boostTimer = 5.0f;
 
-    Player(int startX, int startY, int startSpeedX, int startSpeedY) 
-        : Player_X(startX), Player_Y(startY), Player_Speed_X(startSpeedX), Player_Speed_Y(startSpeedY), Player_Radius(15) {}
+    Player(int startX, int startY, int startSpeedX, int startSpeedY,const char* tRight,const char* tLeft
+    , const char* tIdleRight, const char* tIdleLeft) 
+        : Player_X(startX), Player_Y(startY), Player_Speed_X(startSpeedX), Player_Speed_Y(startSpeedY), Player_Radius(64), 
+        timer(0.0f), currentFrame(0), frameCount(8), isMoving(false), facingRight(true), isIdle(true), idleCount(0),textureRight(LoadTexture(tRight)), 
+        textureLeft(LoadTexture(tLeft)), textureIdleRight(LoadTexture(tIdleRight)), textureIdleLeft(LoadTexture(tIdleLeft)){}
 
     void Update(int SCREEN_WIDTH, int SCREEN_HEIGHT) {
         checkBoosted();
         float moveX = 0;
         float moveY = 0;
 
-        if (IsKeyDown(KEY_W)) moveY = -1;
-        if (IsKeyDown(KEY_S)) moveY = 1;
-        if (IsKeyDown(KEY_D)) moveX = 1;
-        if (IsKeyDown(KEY_A)) moveX = -1;
+        if (IsKeyDown(KEY_W)) {
+            moveY = -1;
+            isMoving = true;
+        }
+
+        if (IsKeyDown(KEY_S)) {
+            moveY = 1;
+            isMoving = true;
+        }
+        
+        if (IsKeyDown(KEY_D)) {
+            moveX = 1;
+            isMoving = true;
+            SetFacingRight(true);
+        }
+        
+        if (IsKeyDown(KEY_A)) {
+            moveX = -1;
+            isMoving = true;
+            SetFacingRight(false);
+        }
+
 
         if (moveX != 0 && moveY != 0) {
             moveX *= 0.7071f;
@@ -50,10 +85,53 @@ public:
         if (Player_X + Player_Radius > SCREEN_WIDTH) Player_X = SCREEN_WIDTH - Player_Radius;
         if (Player_Y - Player_Radius < 0) Player_Y = Player_Radius;
         if (Player_Y + Player_Radius > SCREEN_HEIGHT) Player_Y = SCREEN_HEIGHT - Player_Radius;
+
+        if (isMoving) {
+            isIdle = false;
+            idleCount = 0;
+
+            frameCount = 4;
+            timer += GetFrameTime();
+            if (timer >= frameSpeedIdle) {
+                timer = 0.0f;
+                currentFrame = (currentFrame + 1) % frameCount;
+
+            }
+            isMoving = false;
+        } else {
+            
+            isIdle = true;
+            frameCount = 4;
+            timer += GetFrameTime();
+            if (timer >= frameSpeedIdle) {
+                timer = 0.0f;
+                currentFrame = (currentFrame + 1) % frameCount;
+                if (currentFrame == 0) {
+                    idleCount++;
+                }
+            }    
+        }
+    }
+
+    void SetFacingRight(bool facing) {
+        facingRight = facing;
     }
 
     void Draw() {
-        DrawCircle(Player_X, Player_Y, Player_Radius, BLUE);
+        //DrawCircle(Player_X, Player_Y, Player_Radius, BLUE);
+        int frameToDraw = currentFrame % frameCount;
+
+        if (isIdle) {
+            DrawTexturePro(facingRight ? textureIdleRight : textureIdleLeft,
+                { (float)(frameToDraw * 16), 0, 16, 16 },
+                { (float)(Player_X), (float)(Player_Y), 128, 128 },
+                { 0, 0 }, 0, WHITE);
+        } else {
+            DrawTexturePro(facingRight ? textureRight : textureLeft,
+                { (float)(frameToDraw * 16), 0, 16, 16 },
+                { (float)(Player_X), (float)(Player_Y), 128, 128 },
+                { 0, 0 }, 0, WHITE);
+        }
     }
 
     void checkBoosted() {
@@ -64,20 +142,38 @@ public:
             }
         }
     }
+
+    void Unload() {
+        UnloadTexture(textureRight);
+        UnloadTexture(textureLeft);
+        UnloadTexture(textureIdleRight);
+        UnloadTexture(textureIdleLeft);
+    }
+
 };
 
 class Dusman {
 public:
+    Texture2D textureRight;
+    Texture2D textureLeft;
+
+    
+    int currentFrame;
     int Dusman_X;
     int Dusman_Y;
     float Dusman_Speed_X;
     float Dusman_Speed_Y;
     int Dusman_Radius;
     bool alive = true;
-    float timer = 0;
+    float timer;
+    float timer2;
+    int frameCount;
+    bool facingRight;
 
-    Dusman(int startX, int startY, float startSpeedX, float startSpeedY, int ballRadius) 
-        : Dusman_X(startX), Dusman_Y(startY), Dusman_Speed_X(startSpeedX), Dusman_Speed_Y(startSpeedY), Dusman_Radius(ballRadius) {}
+
+    Dusman(int startX, int startY, float startSpeedX, float startSpeedY, int ballRadius, const char* tRight, const char* tLeft) 
+        : Dusman_X(startX), Dusman_Y(startY), Dusman_Speed_X(startSpeedX),facingRight(true), Dusman_Speed_Y(startSpeedY), Dusman_Radius(ballRadius),
+        timer2(0.0f), currentFrame(0), frameCount(8), textureRight(LoadTexture(tRight)), textureLeft(LoadTexture(tLeft)){}
 
     void Update(int player_x, int player_y, int SCREEN_WIDTH, int SCREEN_HEIGHT) {
         int deltaX = player_x - Dusman_X;
@@ -98,17 +194,43 @@ public:
             Dusman_X += speedX;
             Dusman_Y += speedY;
         }
+
+        frameCount = 4;
+        timer2 += GetFrameTime();
+        if (timer2 >= 0.2f)
+        {
+            timer2 = 0.0f;
+            currentFrame = (currentFrame + 1) % frameCount;
+        }
     }
 
     void Draw() {
         if (!alive) return;
-        DrawCircle(Dusman_X, Dusman_Y, Dusman_Radius, RED);
+        int frameToDraw = currentFrame % frameCount;
+        if (Dusman_Speed_X > 0 )
+        {           
+            DrawTexturePro(textureRight ,
+            { (float)(frameToDraw * 16), 0, 16, 16 },
+            { (float)(Dusman_X), (float)(Dusman_Y), 128, 128 },
+            { 0, 0 }, 0, WHITE);
+        }else{
+            DrawTexturePro(textureLeft ,
+            { (float)(frameToDraw * 16), 0, 16, 16 },
+            { (float)(Dusman_X), (float)(Dusman_Y), 128, 128 },
+            { 0, 0 }, 0, WHITE);
+        }
+        
     }
 
     bool CheckCollision(Player& player) {
         Vector2 enemyCenter = { (float)Dusman_X, (float)Dusman_Y };
         Vector2 playerCenter = { (float)player.Player_X, (float)player.Player_Y };
         return CheckCollisionCircles(playerCenter, player.Player_Radius, enemyCenter, Dusman_Radius);
+    }
+
+    void Unload() {
+        UnloadTexture(textureRight);
+        UnloadTexture(textureLeft);
     }
 };
 
@@ -150,33 +272,33 @@ public:
     }
 };
 
-void dusmanEkle(vector<Dusman>& dusmanlar, int dusmanSayisi, int SCREEN_WIDTH, int SCREEN_HEIGHT){
+void dusmanEkle(vector<Dusman>& dusmanlar, int dusmanSayisi, int SCREEN_WIDTH, int SCREEN_HEIGHT, const char* tRight, const char* tLeft){
     for (int i = 0; i < dusmanSayisi; ++i) {
         int rnd_field = 1 + rand() % 8;
         switch (rnd_field) {
             case 1:
-                dusmanlar.push_back(Dusman(-rand() % 100, -rand() % 100, 3, 3, 15));
+                dusmanlar.push_back(Dusman(-rand() % 100, -rand() % 100, 3, 3, 15, tRight, tLeft));
                 break;
             case 2:
-                dusmanlar.push_back(Dusman(rand() % SCREEN_WIDTH, -rand() % 100, 3, 3, 15));
+                dusmanlar.push_back(Dusman(rand() % SCREEN_WIDTH, -rand() % 100, 3, 3, 15, tRight, tLeft));
                 break;
             case 3:
-                dusmanlar.push_back(Dusman(-rand() % 100, rand() % SCREEN_HEIGHT, 3, 3, 15));
+                dusmanlar.push_back(Dusman(-rand() % 100, rand() % SCREEN_HEIGHT, 3, 3, 15, tRight, tLeft));
                 break;
             case 4:
-                dusmanlar.push_back(Dusman(-rand() % 100, SCREEN_HEIGHT + rand() % 100, 3, 3, 15));
+                dusmanlar.push_back(Dusman(-rand() % 100, SCREEN_HEIGHT + rand() % 100, 3, 3, 15, tRight, tLeft));
                 break;
             case 5:
-                dusmanlar.push_back(Dusman(SCREEN_WIDTH + rand() % 100, SCREEN_HEIGHT + rand() % 100, 3, 3, 15));
+                dusmanlar.push_back(Dusman(SCREEN_WIDTH + rand() % 100, SCREEN_HEIGHT + rand() % 100, 3, 3, 15, tRight, tLeft));
                 break;
             case 6:
-                dusmanlar.push_back(Dusman(rand() % SCREEN_WIDTH, SCREEN_HEIGHT + rand() % 100, 3, 3, 15));
+                dusmanlar.push_back(Dusman(rand() % SCREEN_WIDTH, SCREEN_HEIGHT + rand() % 100, 3, 3, 15, tRight, tLeft));
                 break;
             case 7:
-                dusmanlar.push_back(Dusman(SCREEN_WIDTH + rand() % 100, rand() % SCREEN_HEIGHT, 3, 3, 15));
+                dusmanlar.push_back(Dusman(SCREEN_WIDTH + rand() % 100, rand() % SCREEN_HEIGHT, 3, 3, 15, tRight, tLeft));
                 break;
             default:
-                dusmanlar.push_back(Dusman(SCREEN_WIDTH + rand() % 100, SCREEN_HEIGHT + rand() % 100, 3, 3, 15));
+                dusmanlar.push_back(Dusman(SCREEN_WIDTH + rand() % 100, SCREEN_HEIGHT + rand() % 100, 3, 3, 15, tRight, tLeft));
                 break;
         }
     }
@@ -258,6 +380,10 @@ int main() {
     InitAudioDevice();
     ToggleFullscreen();
 
+    const char* rightFile = "assets/chicken_run_right-Sheet.png";
+    const char* leftFile = "assets/chicken_run_left-Sheet.png";
+    const char* idleRightFile = "assets/chicken_idle_right-Sheet.png";
+    const char* idleLeftFile = "assets/chicken_idle_left-Sheet.png";
     Texture2D eggTexture = LoadTexture("assets/egg.png");
 
     bgMusic = LoadMusicStream("resources/backgroundMusic.ogg");
@@ -275,7 +401,7 @@ int main() {
 
     SetTargetFPS(60);
     srand(time(nullptr));
-    Player player(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, 5, 5);
+    Player player(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, 5, 5, rightFile, leftFile, idleRightFile, idleLeftFile);
     vector<Dusman> dusmanlar;
     vector<Bullet> bullets;
 
@@ -317,7 +443,7 @@ int main() {
         chrono::duration<double> duration_sec = counter_time - counter_start_time;
         int enemy_count = (duration_sec.count() / 15) * log(duration_sec.count() / 15);
         if (dusmanlar.size() < Dusman_Sayisi || dusmanlar.size() < enemy_count) {
-            dusmanEkle(dusmanlar, Dusman_Sayisi, SCREEN_WIDTH, SCREEN_HEIGHT);
+            dusmanEkle(dusmanlar, Dusman_Sayisi, SCREEN_WIDTH, SCREEN_HEIGHT, rightFile, leftFile);
         }
 
         if ((IsMouseButtonPressed(MOUSE_BUTTON_LEFT) || player.isBoosted) && shootTimer >= shootCooldown) {
@@ -334,6 +460,7 @@ int main() {
             for (auto& d : dusmanlar) {
                 if (it->CheckCollisionDusman(d)) {
                     d.alive = false;
+                    d.Unload();
                     score += 10;
                     hit = true;
                     break;
@@ -354,6 +481,7 @@ int main() {
 
             if (!it->alive) {
                 it = dusmanlar.erase(it);
+                it->Unload();
             } else {
                 ++it;
             }
@@ -368,6 +496,11 @@ int main() {
         EndDrawing();
     }
 
+    player.Unload();
+    for (auto it = dusmanlar.begin(); it != dusmanlar.end(); ) {
+        it->Unload();
+    }
+    UnloadTexture(eggTexture);
     UnloadMusicStream(bgMusic);
     UnloadSound(bulletSound);
     UnloadSound(menuSound);
