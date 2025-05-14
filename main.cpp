@@ -117,9 +117,10 @@ public:
     float x, y;
     float speedX, speedY;
     int radius;
+    Texture2D texture;
 
-    Bullet(float startX, float startY, float targetX, float targetY, float bulletSpeed, int bulletRadius)
-        : x(startX), y(startY), radius(bulletRadius) {
+    Bullet(float startX, float startY, float targetX, float targetY, float bulletSpeed, int bulletRadius,Texture2D textureImg)
+        : x(startX), y(startY), radius(bulletRadius),texture(textureImg) {
         float deltaX = targetX - startX;
         float deltaY = targetY - startY;
         float length = sqrt(deltaX * deltaX + deltaY * deltaY);
@@ -133,7 +134,7 @@ public:
     }
 
     void Draw() {
-        DrawCircle(x, y, radius, RED);
+        DrawTexture(texture, x, y, WHITE);
     }
 
     bool CheckCollisionDusman(Dusman& dusman) {
@@ -257,6 +258,8 @@ int main() {
     InitAudioDevice();
     ToggleFullscreen();
 
+    Texture2D eggTexture = LoadTexture("assets/egg.png");
+
     bgMusic = LoadMusicStream("resources/backgroundMusic.ogg");
     bulletSound = LoadSound("resources/bulletFireSound.mp3");
     enemyHitSound = LoadSound("resources/enemyHitSound.mp3");
@@ -319,7 +322,7 @@ int main() {
 
         if ((IsMouseButtonPressed(MOUSE_BUTTON_LEFT) || player.isBoosted) && shootTimer >= shootCooldown) {
             shootTimer = 0.0f;
-            bullets.push_back(Bullet(player.Player_X, player.Player_Y, mousePos.x, mousePos.y, Bullet_Speed, 5));
+            bullets.push_back(Bullet(player.Player_X, player.Player_Y, mousePos.x, mousePos.y, Bullet_Speed, 32, eggTexture));
             PlaySound(bulletSound);
         }
         shootTimer += GetFrameTime();
