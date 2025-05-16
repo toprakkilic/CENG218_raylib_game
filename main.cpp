@@ -24,6 +24,7 @@ public:
 
     int currentFrame;
     float timer;
+    float boosttimeout = 0.0f;
     float frameSpeedIdle = 0.2f;// Idle animasyon hızı
     int frameCount;
     bool isMoving = false;
@@ -36,7 +37,7 @@ public:
     int Player_Speed_X;
     int Player_Speed_Y;
     int Player_Radius;
-    bool isBoosted = true;
+    bool isBoosted = false;
     float boostTimer = 5.0f;
 
     Player(int startX, int startY, int startSpeedX, int startSpeedY,const char* tRight,const char* tLeft
@@ -47,6 +48,13 @@ public:
 
     void Update(int SCREEN_WIDTH, int SCREEN_HEIGHT) {
         checkBoosted();
+
+        if (!isBoosted && boosttimeout > 0.0f) {
+        boosttimeout -= GetFrameTime();
+        if (boosttimeout < 0.0f)
+            boosttimeout = 0.0f;
+            boostTimer = 5.0f;
+        }
         float moveX = 0;
         float moveY = 0;
 
@@ -70,6 +78,11 @@ public:
             moveX = -1;
             isMoving = true;
             SetFacingRight(false);
+        }
+        if (IsKeyDown(KEY_E)) {
+            if(boosttimeout == 0.0f){
+                isBoosted = true;
+            }
         }
 
 
@@ -139,6 +152,7 @@ public:
             boostTimer -= GetFrameTime();
             if (boostTimer <= 0) {
                 isBoosted = false;
+                boosttimeout = 15.0f;
             }
         }
     }
@@ -157,7 +171,8 @@ public:
     Texture2D textureRight;
     Texture2D textureLeft;
 
-    
+    float speedX;
+    float speedY;
     int currentFrame;
     int Dusman_X;
     int Dusman_Y;
@@ -189,8 +204,8 @@ public:
         }
 
         if (distance > 0) {
-            float speedX = (deltaX / distance) * Dusman_Speed_X;
-            float speedY = (deltaY / distance) * Dusman_Speed_Y;
+            speedX = (deltaX / distance) * Dusman_Speed_X;
+            speedY = (deltaY / distance) * Dusman_Speed_Y;
             Dusman_X += speedX;
             Dusman_Y += speedY;
         }
@@ -205,28 +220,32 @@ public:
     }
 
     void Draw() {
+        
         if (!alive) return;
         int frameToDraw = currentFrame % frameCount;
-        if (Dusman_Speed_X > 0 )
+        if (speedX > 0 )
         {           
             DrawTexturePro(textureRight ,
             { (float)(frameToDraw * 16), 0, 16, 16 },
-            { (float)(Dusman_X), (float)(Dusman_Y), 128, 128 },
-            { 0, 0 }, 0, WHITE);
-        }else{
+            { (float)(Dusman_X), (float)(Dusman_Y), 64, 64 },
+            { 0, 0 }, 0, RED);
+        }else if(speedX < 0){
             DrawTexturePro(textureLeft ,
             { (float)(frameToDraw * 16), 0, 16, 16 },
-            { (float)(Dusman_X), (float)(Dusman_Y), 128, 128 },
-            { 0, 0 }, 0, WHITE);
+            { (float)(Dusman_X), (float)(Dusman_Y), 64, 64 },
+            { 0, 0 }, 0, RED);
         }
         
     }
 
     bool CheckCollision(Player& player) {
-        Vector2 enemyCenter = { (float)Dusman_X, (float)Dusman_Y };
-        Vector2 playerCenter = { (float)player.Player_X, (float)player.Player_Y };
-        return CheckCollisionCircles(playerCenter, player.Player_Radius, enemyCenter, Dusman_Radius);
-    }
+        Vector2 enemyCenter = { (float)Dusman_X + 32.0f, (float)Dusman_Y + 32.0f };
+        Vector2 playerCenter = { (float)player.Player_X + 64.0f, (float)player.Player_Y + 64.0f };
+        int playerRadius = (int)(64 * 0.7f);
+        int enemyRadius = (int)(32 * 0.7f);
+        return CheckCollisionCircles(playerCenter, playerRadius, enemyCenter, enemyRadius);
+}
+
 
     void Unload() {
         UnloadTexture(textureRight);
@@ -260,14 +279,14 @@ public:
     }
 
     bool CheckCollisionDusman(Dusman& dusman) {
-        Vector2 enemyCenter = { (float)dusman.Dusman_X, (float)dusman.Dusman_Y };
-        Vector2 bulletCenter = { (float)x, (float)y };
-        bool isColliding = CheckCollisionCircles(bulletCenter, radius, enemyCenter, dusman.Dusman_Radius);
-        
-        if (isColliding) {
-            PlaySound(enemyHitSound);  // Düşman vurulduğunda ses çalacak
+        Vector2 enemyCenter = { (float)dusman.Dusman_X + 32.0f, (float)dusman.Dusman_Y + 32.0f };
+        Vector2 bulletCenter = { x + radius, y + radius }; // Bullet pozisyonu sol üst, yarıçap kadar kaydırıyoruz
+        int enemyRadius = (int)(32 * 0.7f);
+        bool isColliding = CheckCollisionCircles(bulletCenter, radius, enemyCenter, enemyRadius);
+    
+         if (isColliding) {
+        PlaySound(enemyHitSound);
         }
-        
         return isColliding;
     }
 };
@@ -309,10 +328,34 @@ void ShowMainMenu(bool& gameStarted) {
         BeginDrawing();
         ClearBackground(RAYWHITE);
 
-        DrawText("MAIN MENU", 300, 100, 30, BLACK);
-        Rectangle startButton = { 270, 180, 260, 50 };
+        int screenWidth = GetScreenWidth();
+        int screenHeight = GetScreenHeight();
+
+        // Başlık metni
+        const char* titleText = "MAIN MENU";
+        int titleFontSize = 30;
+        int titleTextWidth = MeasureText(titleText, titleFontSize);
+        int titleX = (screenWidth - titleTextWidth) / 2;
+        int titleY = screenHeight / 3;  // Ekranın üst üçte biri civarı
+
+        DrawText(titleText, titleX, titleY, titleFontSize, BLACK);
+
+        // Start butonu
+        const char* buttonText = "Start";
+        int buttonFontSize = 20;
+        int buttonWidth = 260;
+        int buttonHeight = 50;
+        int buttonX = (screenWidth - buttonWidth) / 2;
+        int buttonY = titleY + 100;
+
+        Rectangle startButton = { (float)buttonX, (float)buttonY, (float)buttonWidth, (float)buttonHeight };
         DrawRectangleRec(startButton, BLUE);
-        DrawText("Start", 280, 195, 20, WHITE);
+
+        int buttonTextWidth = MeasureText(buttonText, buttonFontSize);
+        int buttonTextX = buttonX + (buttonWidth - buttonTextWidth) / 2;
+        int buttonTextY = buttonY + (buttonHeight - buttonFontSize) / 2;
+
+        DrawText(buttonText, buttonTextX, buttonTextY, buttonFontSize, WHITE);
 
         if (CheckCollisionPointRec(GetMousePosition(), startButton) && IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
             PlaySound(menuSound);
@@ -324,21 +367,61 @@ void ShowMainMenu(bool& gameStarted) {
     }
 }
 
+
 void ShowEndMenu(bool& status, int score, int maxScore) {
     while (!WindowShouldClose()) {
         BeginDrawing();
         ClearBackground(RAYWHITE);
 
-        DrawText("Game Ended", 300, 100, 30, BLACK);
-        Rectangle restartButton = { 270, 180, 260, 50 };
-        Rectangle exitButton = { 270, 250, 260, 50 };
-        DrawText(TextFormat("Max Score: %d", maxScore), 280, 425, 20, BLACK);
-        DrawText(TextFormat(" Score: %d", score), 280, 335, 20, BLACK);
-        DrawRectangleRec(restartButton, BLUE);
-        DrawText("restart", 280, 195, 20, WHITE);
-        DrawRectangleRec(exitButton, RED);
-        DrawText("Exit", 280, 265, 20, WHITE);
+        int screenWidth = GetScreenWidth();
+        int screenHeight = GetScreenHeight();
 
+        // Başlık
+        const char* titleText = "Game Ended";
+        int titleFontSize = 30;
+        int titleTextWidth = MeasureText(titleText, titleFontSize);
+        int titleX = (screenWidth - titleTextWidth) / 2;
+        int titleY = screenHeight / 6;
+        DrawText(titleText, titleX, titleY, titleFontSize, BLACK);
+
+        // Skor metinleri
+        int scoreFontSize = 20;
+        
+        string maxScoreStr = TextFormat("Max Score: %d", maxScore);
+        int maxScoreTextWidth = MeasureText(maxScoreStr.c_str(), scoreFontSize);
+        int maxScoreX = (screenWidth - maxScoreTextWidth) / 2;
+        int maxScoreY = titleY + 260;
+        DrawText(maxScoreStr.c_str(), maxScoreX, maxScoreY, scoreFontSize, BLACK);
+
+        string scoreStr = TextFormat("Score: %d", score);
+        int scoreTextWidth = MeasureText(scoreStr.c_str(), scoreFontSize);
+        int scoreX = (screenWidth - scoreTextWidth) / 2;
+        int scoreY = maxScoreY - 60;
+        DrawText(scoreStr.c_str(), scoreX, scoreY, scoreFontSize, BLACK);
+
+        // Butonlar
+        int buttonWidth = 260;
+        int buttonHeight = 50;
+        int buttonX = (screenWidth - buttonWidth) / 2;
+        
+        Rectangle restartButton = { (float)buttonX, (float)(scoreY + 80), (float)buttonWidth, (float)buttonHeight };
+        Rectangle exitButton = { (float)buttonX, (float)(scoreY + 80 + buttonHeight + 30), (float)buttonWidth, (float)buttonHeight };
+
+        DrawRectangleRec(restartButton, BLUE);
+        const char* restartText = "Restart";
+        int restartTextWidth = MeasureText(restartText, scoreFontSize);
+        int restartTextX = buttonX + (buttonWidth - restartTextWidth) / 2;
+        int restartTextY = restartButton.y + (buttonHeight - scoreFontSize) / 2;
+        DrawText(restartText, restartTextX, restartTextY, scoreFontSize, WHITE);
+
+        DrawRectangleRec(exitButton, RED);
+        const char* exitText = "Exit";
+        int exitTextWidth = MeasureText(exitText, scoreFontSize);
+        int exitTextX = buttonX + (buttonWidth - exitTextWidth) / 2;
+        int exitTextY = exitButton.y + (buttonHeight - scoreFontSize) / 2;
+        DrawText(exitText, exitTextX, exitTextY, scoreFontSize, WHITE);
+
+        // Butonların kontrolü
         if (CheckCollisionPointRec(GetMousePosition(), restartButton) && IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
             PlaySound(menuSound);
             status = true;
@@ -354,12 +437,13 @@ void ShowEndMenu(bool& status, int score, int maxScore) {
     }
 }
 
+
 void ResetGame(Player& player, vector<Dusman>& dusmanlar, vector<Bullet>& bullets, int& score, bool& gameOver, int Screen_Width, int Screen_Height) {
     player.Player_X = Screen_Width / 2;
     player.Player_Y = Screen_Height / 2;
     score = 0;
     gameOver = false;
-    player.isBoosted = true;
+    player.isBoosted = false;
     player.boostTimer = 5.0f;
 
     dusmanlar.clear();
@@ -375,6 +459,8 @@ int main() {
     int MaxScore = 0;
     float shootTimer = 0.0f;
     float shootCooldown = 0.1f;
+
+    Texture2D bakcground = LoadTexture("/assets/bg.jpg");
 
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Bullet Hell Game");
     InitAudioDevice();
@@ -432,7 +518,7 @@ int main() {
             if (status) {
                 ResetGame(player, dusmanlar, bullets, score, gameOver, SCREEN_WIDTH, SCREEN_HEIGHT);
             } else {
-                break;
+                goto label;
             }
         }
 
@@ -448,7 +534,10 @@ int main() {
 
         if ((IsMouseButtonPressed(MOUSE_BUTTON_LEFT) || player.isBoosted) && shootTimer >= shootCooldown) {
             shootTimer = 0.0f;
-            bullets.push_back(Bullet(player.Player_X, player.Player_Y, mousePos.x, mousePos.y, Bullet_Speed, 32, eggTexture));
+            float bulletStartX = player.Player_X + 100;  // X ekseninde merminin çıkış noktası
+            float bulletStartY = player.Player_Y + 40;   // Y ekseninde merminin çıkış noktası
+            bullets.push_back(Bullet(bulletStartX, bulletStartY, mousePos.x, mousePos.y, Bullet_Speed, 32, eggTexture));
+
             PlaySound(bulletSound);
         }
         shootTimer += GetFrameTime();
@@ -489,17 +578,22 @@ int main() {
 
         BeginDrawing();
         ClearBackground(RAYWHITE);
+
+        DrawTexturePro(bakcground,
+                {0, 0, (float)bakcground.width, (float)bakcground.height},
+                {0, 0, (float)SCREEN_WIDTH, (float)SCREEN_HEIGHT},
+                {0, 0},
+                0.0f,
+                WHITE);
         player.Draw();
         for (auto& d : dusmanlar) d.Draw();
         for (auto& b : bullets) b.Draw();
         if (!gameOver) DrawText(TextFormat("Score: %d", score), 10, 10, 20, BLACK);
         EndDrawing();
     }
-
+    label:
     player.Unload();
-    for (auto it = dusmanlar.begin(); it != dusmanlar.end(); ) {
-        it->Unload();
-    }
+    UnloadTexture(bakcground);
     UnloadTexture(eggTexture);
     UnloadMusicStream(bgMusic);
     UnloadSound(bulletSound);
