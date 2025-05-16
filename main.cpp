@@ -377,26 +377,26 @@ void ShowEndMenu(bool& status, int score, int maxScore) {
         int screenHeight = GetScreenHeight();
 
         // Başlık
-        const char* titleText = "Game Ended";
-        int titleFontSize = 30;
+        const char* titleText = "Oyun Bitti";
+        int titleFontSize = 64;
         int titleTextWidth = MeasureText(titleText, titleFontSize);
         int titleX = (screenWidth - titleTextWidth) / 2;
         int titleY = screenHeight / 6;
-        DrawText(titleText, titleX, titleY, titleFontSize, BLACK);
+        DrawText(titleText, titleX, titleY, titleFontSize, RED);
 
         // Skor metinleri
-        int scoreFontSize = 20;
+        int scoreFontSize = 24;
         
-        string maxScoreStr = TextFormat("Max Score: %d", maxScore);
+        string maxScoreStr = TextFormat("En yüksek skor: %d", maxScore);
         int maxScoreTextWidth = MeasureText(maxScoreStr.c_str(), scoreFontSize);
         int maxScoreX = (screenWidth - maxScoreTextWidth) / 2;
         int maxScoreY = titleY + 260;
         DrawText(maxScoreStr.c_str(), maxScoreX, maxScoreY, scoreFontSize, BLACK);
 
-        string scoreStr = TextFormat("Score: %d", score);
+        string scoreStr = TextFormat("Skor: %d", score);
         int scoreTextWidth = MeasureText(scoreStr.c_str(), scoreFontSize);
         int scoreX = (screenWidth - scoreTextWidth) / 2;
-        int scoreY = maxScoreY - 60;
+        int scoreY = maxScoreY - 30;
         DrawText(scoreStr.c_str(), scoreX, scoreY, scoreFontSize, BLACK);
 
         // Butonlar
@@ -408,7 +408,7 @@ void ShowEndMenu(bool& status, int score, int maxScore) {
         Rectangle exitButton = { (float)buttonX, (float)(scoreY + 80 + buttonHeight + 30), (float)buttonWidth, (float)buttonHeight };
 
         DrawRectangleRec(restartButton, BLUE);
-        const char* restartText = "Restart";
+        const char* restartText = "Yeniden Oyna";
         int restartTextWidth = MeasureText(restartText, scoreFontSize);
         int restartTextX = buttonX + (buttonWidth - restartTextWidth) / 2;
         int restartTextY = restartButton.y + (buttonHeight - scoreFontSize) / 2;
@@ -444,9 +444,10 @@ void ResetGame(Player& player, vector<Dusman>& dusmanlar, vector<Bullet>& bullet
     score = 0;
     gameOver = false;
     player.isBoosted = false;
-    player.boostTimer = 5.0f;
 
     dusmanlar.clear();
+    
+    player.boosttimeout = 0.0f;
 
     bullets.clear(); 
 }
@@ -460,8 +461,6 @@ int main() {
     float shootTimer = 0.0f;
     float shootCooldown = 0.1f;
 
-    Texture2D bakcground = LoadTexture("/assets/bg.jpg");
-
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Bullet Hell Game");
     InitAudioDevice();
     ToggleFullscreen();
@@ -472,6 +471,9 @@ int main() {
     const char* idleLeftFile = "assets/chicken_idle_left-Sheet.png";
     Texture2D eggTexture = LoadTexture("assets/egg.png");
 
+
+    Texture2D background = LoadTexture("assets/backgroundImage.jpg");
+    
     bgMusic = LoadMusicStream("resources/backgroundMusic.ogg");
     bulletSound = LoadSound("resources/bulletFireSound.mp3");
     enemyHitSound = LoadSound("resources/enemyHitSound.mp3");
@@ -577,23 +579,19 @@ int main() {
         }
 
         BeginDrawing();
-        ClearBackground(RAYWHITE);
-
-        DrawTexturePro(bakcground,
-                {0, 0, (float)bakcground.width, (float)bakcground.height},
-                {0, 0, (float)SCREEN_WIDTH, (float)SCREEN_HEIGHT},
-                {0, 0},
-                0.0f,
-                WHITE);
+        ClearBackground(WHITE);
+        DrawTexture(background, 0, 0, WHITE);
+        
         player.Draw();
         for (auto& d : dusmanlar) d.Draw();
         for (auto& b : bullets) b.Draw();
         if (!gameOver) DrawText(TextFormat("Score: %d", score), 10, 10, 20, BLACK);
         EndDrawing();
     }
+    
     label:
     player.Unload();
-    UnloadTexture(bakcground);
+    UnloadTexture(background);
     UnloadTexture(eggTexture);
     UnloadMusicStream(bgMusic);
     UnloadSound(bulletSound);
