@@ -517,6 +517,7 @@ int main() {
             ShowEndMenu(status, score, MaxScore);
             if (status) {
                 ResetGame(player, dusmanlar, bullets, score, gameOver, SCREEN_WIDTH, SCREEN_HEIGHT);
+                counter_start_time = chrono::high_resolution_clock::now();
             } else {
                 goto label;
             }
