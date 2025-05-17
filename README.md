@@ -41,8 +41,12 @@ Asuman'ı kontrol ederek düşman dalgalarıyla savaşıyorsunuz. Yumurtaları m
 | ESC                 | Oyunu kapatma                                             |
 
 
+## Oyundan Görüntüler
+### Ana Menü
 ![Ana Menü](images/1.jpg)
 
+### Oyun İçi Görüntü
 ![Oyun İçi Görüntü](images/2.jpg)
 
+### Oyun Sonu
 ![Oyun Sonu](images/3.jpg)
