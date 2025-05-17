@@ -323,40 +323,38 @@ void dusmanEkle(vector<Dusman>& dusmanlar, int dusmanSayisi, int SCREEN_WIDTH, i
     }
 }
 
-void ShowMainMenu(bool& gameStarted) {
+void ShowMainMenu(bool& gameStarted, int screenWidth, int screenHeight, Texture2D Background, Texture2D Foreground, Texture2D ButtonD, Texture2D ButtonH) {
+    float scrollingBack = 0.0f;
+    SetTargetFPS(60);
+
     while (!WindowShouldClose()) {
+
+        scrollingBack -= 2.0f;
+        if (scrollingBack <= -Background.width) scrollingBack = 0;
+        SetTargetFPS(60); 
         BeginDrawing();
         ClearBackground(RAYWHITE);
 
         int screenWidth = GetScreenWidth();
         int screenHeight = GetScreenHeight();
 
-        // Başlık metni
-        const char* titleText = "MAIN MENU";
-        int titleFontSize = 30;
-        int titleTextWidth = MeasureText(titleText, titleFontSize);
-        int titleX = (screenWidth - titleTextWidth) / 2;
-        int titleY = screenHeight / 3;  // Ekranın üst üçte biri civarı
+        DrawTextureEx(Background, (Vector2){ scrollingBack, 0 }, 0.0f, 1.0f, RAYWHITE);
+        DrawTextureEx(Background, (Vector2){ screenWidth*2 + scrollingBack, 0 }, 0.0f, 1.0f, RAYWHITE);
+        // Foreground'u sabit çiz
+        DrawTexture(Foreground, 0, 0, RAYWHITE);
 
-        DrawText(titleText, titleX, titleY, titleFontSize, BLACK);
-
-        // Start butonu
-        const char* buttonText = "Start";
-        int buttonFontSize = 20;
-        int buttonWidth = 260;
-        int buttonHeight = 50;
-        int buttonX = (screenWidth - buttonWidth) / 2;
-        int buttonY = titleY + 100;
-
-        Rectangle startButton = { (float)buttonX, (float)buttonY, (float)buttonWidth, (float)buttonHeight };
+        int buttonWidth = 260*2;
+        int buttonHeight = 56*2;
+        
+        Rectangle startButton = { (float)(screenWidth - buttonWidth) / 2 + 5, (float)screenHeight / 2 - 56 + 5, (float)buttonWidth-10, (float)buttonHeight-10 };
         DrawRectangleRec(startButton, BLUE);
-
-        int buttonTextWidth = MeasureText(buttonText, buttonFontSize);
-        int buttonTextX = buttonX + (buttonWidth - buttonTextWidth) / 2;
-        int buttonTextY = buttonY + (buttonHeight - buttonFontSize) / 2;
-
-        DrawText(buttonText, buttonTextX, buttonTextY, buttonFontSize, WHITE);
-
+        
+        if (CheckCollisionPointRec(GetMousePosition(), startButton)) {
+            DrawTexture(ButtonH, (screenWidth - buttonWidth) / 2 , screenHeight / 2 - buttonHeight/2, RAYWHITE);
+        }else{
+            DrawTexture(ButtonD, (screenWidth - buttonWidth) / 2 , screenHeight / 2 - buttonHeight/2, RAYWHITE);
+        }            
+        
         if (CheckCollisionPointRec(GetMousePosition(), startButton) && IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
             PlaySound(menuSound);
             gameStarted = true;
@@ -365,11 +363,14 @@ void ShowMainMenu(bool& gameStarted) {
 
         EndDrawing();
     }
+    UnloadTexture(Background);
+    UnloadTexture(Foreground);
 }
 
 
 void ShowEndMenu(bool& status, int score, int maxScore) {
     while (!WindowShouldClose()) {
+
         BeginDrawing();
         ClearBackground(RAYWHITE);
 
@@ -473,6 +474,11 @@ int main() {
 
 
     Texture2D background = LoadTexture("assets/backgroundImage.jpg");
+    Texture2D MainMenuBackground = LoadTexture("assets/GameMainMenuBackground.png");  // Genişlik = 2 * screenWidth
+    Texture2D MainMenuForeground = LoadTexture("assets/GameMainMenuForeground.png");    // Genişlik = screenWidth
+    Texture2D ButtonDef = LoadTexture("assets/BaslaDefault.png");
+    Texture2D ButtonHov = LoadTexture("assets/BaslaHovered.png");
+
     
     bgMusic = LoadMusicStream("resources/backgroundMusic.ogg");
     bulletSound = LoadSound("resources/bulletFireSound.mp3");
@@ -494,7 +500,7 @@ int main() {
     vector<Bullet> bullets;
 
     bool gameStarted = false;
-    ShowMainMenu(gameStarted);
+    ShowMainMenu(gameStarted, SCREEN_WIDTH, SCREEN_HEIGHT, MainMenuBackground, MainMenuForeground, ButtonDef, ButtonHov);
 
     bool gameOver = false;
     int score = 0;
