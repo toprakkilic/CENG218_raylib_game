@@ -623,6 +623,16 @@ int main() {
         for (auto& d : dusmanlar) d.Draw();
         for (auto& b : bullets) b.Draw();
         if (!gameOver) DrawText(TextFormat("Score: %d", score), 10, 10, 20, BLACK);
+        if (!gameOver) {
+            string ultistr = TextFormat("GUCLENDIRME [E]: %d", (int)player.boosttimeout);
+            
+            if (player.boosttimeout == 0.0f) {
+                DrawText("GUCLENDIRME [E]: HAZIR!", 10, 50, 20, BLACK);
+            } else {
+                DrawText(ultistr.c_str(), 10, 50, 20, BLACK);
+            }
+        }
+
         EndDrawing();
     }
     
