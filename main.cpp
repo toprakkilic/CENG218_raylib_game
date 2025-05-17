@@ -378,8 +378,8 @@ void ShowMainMenu(bool& gameStarted, int screenWidth, int screenHeight, Texture2
     UnloadTexture(Foreground);
 }
 
-void ShowEndMenu(bool& status, int score, int maxScore, int screenWidth, int screenHeight, const char* background, Texture2D TekrarDef, Texture2D TekrarHov, Texture2D CikDef,
-            Texture2D CikHov) {
+void ShowEndMenu(bool& status, int score, int maxScore, int screenWidth, int screenHeight, const char* background,Texture2D TekrarDef, Texture2D TekrarHov, 
+    Texture2D CikDef, Texture2D CikHov, Texture2D GameOver) {
     
     Texture2D Background = LoadTexture(background);
     float scrollingBack = 0.0f;
@@ -397,12 +397,9 @@ void ShowEndMenu(bool& status, int score, int maxScore, int screenWidth, int scr
         DrawTextureEx(Background, (Vector2){ screenWidth*2 + scrollingBack, 0 }, 0.0f, 1.0f, RAYWHITE);
 
         // Başlık
-        const char* titleText = "Oyun Bitti";
-        int titleFontSize = 64;
-        int titleTextWidth = MeasureText(titleText, titleFontSize);
-        int titleX = (screenWidth - titleTextWidth) / 2;
+        int titleX = screenWidth / 2;
         int titleY = screenHeight / 6;
-        DrawText(titleText, titleX, titleY, titleFontSize, RED);
+        DrawTexture(GameOver, (float)(titleX - (GameOver.width / 2)) , (float)(titleY) , RAYWHITE);
 
         // Skor metinleri
         int scoreFontSize = 24;
@@ -410,21 +407,21 @@ void ShowEndMenu(bool& status, int score, int maxScore, int screenWidth, int scr
         string maxScoreStr = TextFormat("En yüksek skor: %d", maxScore);
         int maxScoreTextWidth = MeasureText(maxScoreStr.c_str(), scoreFontSize);
         int maxScoreX = (screenWidth - maxScoreTextWidth) / 2;
-        int maxScoreY = titleY + 260;
+        int maxScoreY = titleY + 360;
         DrawText(maxScoreStr.c_str(), maxScoreX, maxScoreY, scoreFontSize, BLACK);
 
         string scoreStr = TextFormat("Skor: %d", score);
         int scoreTextWidth = MeasureText(scoreStr.c_str(), scoreFontSize);
         int scoreX = (screenWidth - scoreTextWidth) / 2;
-        int scoreY = maxScoreY - 30;
+        int scoreY = maxScoreY - 30 + 100;
         DrawText(scoreStr.c_str(), scoreX, scoreY, scoreFontSize, BLACK);
 
         // Butonlar
-        int buttonWidth = 260 * 2;
-        int buttonHeight = 56 * 2;
+        int buttonWidth = 260*2;
+        int buttonHeight = 56*2;
         int buttonX = (screenWidth - buttonWidth) / 2;
         
-        Rectangle restartButton = { (float)(buttonX + 5), (float)(scoreY + 80 + 5), (float)buttonWidth - 10, (float)buttonHeight - 10 };
+        Rectangle restartButton = { (float)(buttonX + 5), (float)(scoreY + 80 + 5), (float)buttonWidth-10, (float)buttonHeight-10 };
         Rectangle exitButton = { (float)(buttonX + 5), (float)(scoreY + 80 + buttonHeight + 30 + 5), (float)(buttonWidth - 10), (float)(buttonHeight - 10) };
 
         DrawRectangleRec(restartButton, BLUE);
@@ -505,6 +502,7 @@ int main() {
     Texture2D ButtonTkrHov = LoadTexture("assets/TekrarDeneHover.png");
     Texture2D ButtonCikDef = LoadTexture("assets/CikDef.png");
     Texture2D ButtonCikHov = LoadTexture("assets/CikHover.png");
+    Texture2D GameOver = LoadTexture("assets/GameOver.png");
 
     
     bgMusic = LoadMusicStream("resources/backgroundMusic.ogg");
@@ -551,7 +549,7 @@ int main() {
             if (score > MaxScore) MaxScore = score;
             bool status = false;
             
-            ShowEndMenu(status, score, MaxScore, SCREEN_WIDTH, SCREEN_HEIGHT, "assets/GameMainMenuBackground.png", ButtonTkrDef, ButtonTkrHov, ButtonCikDef, ButtonCikHov);
+            ShowEndMenu(status, score, MaxScore, SCREEN_WIDTH, SCREEN_HEIGHT, "assets/GameMainMenuBackground.png", ButtonTkrDef, ButtonTkrHov, ButtonCikDef, ButtonCikHov, GameOver);
             if (status) {
                 ResetGame(player, dusmanlar, bullets, score, gameOver, SCREEN_WIDTH, SCREEN_HEIGHT);
                 counter_start_time = chrono::high_resolution_clock::now();
