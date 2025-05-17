@@ -323,36 +323,36 @@ void dusmanEkle(vector<Dusman>& dusmanlar, int dusmanSayisi, int SCREEN_WIDTH, i
     }
 }
 
-void ShowMainMenu(bool& gameStarted, int screenWidth, int screenHeight, Texture2D Background, Texture2D Foreground, Texture2D ButtonD, Texture2D ButtonH) {
+void ShowMainMenu(bool& gameStarted, int screenWidth, int screenHeight, Texture2D GameName,Texture2D Background, Texture2D Foreground, Texture2D ButtonD, Texture2D ButtonH) {
     float scrollingBack = 0.0f;
-    SetTargetFPS(60);
-
+    SetTargetFPS(60); 
     while (!WindowShouldClose()) {
 
         scrollingBack -= 2.0f;
         if (scrollingBack <= -Background.width) scrollingBack = 0;
-        SetTargetFPS(60); 
+        
         BeginDrawing();
         ClearBackground(RAYWHITE);
-
-        int screenWidth = GetScreenWidth();
-        int screenHeight = GetScreenHeight();
 
         DrawTextureEx(Background, (Vector2){ scrollingBack, 0 }, 0.0f, 1.0f, RAYWHITE);
         DrawTextureEx(Background, (Vector2){ screenWidth*2 + scrollingBack, 0 }, 0.0f, 1.0f, RAYWHITE);
         // Foreground'u sabit çiz
         DrawTexture(Foreground, 0, 0, RAYWHITE);
 
+        //oyun ismi
+        DrawTexture(GameName, (screenWidth - GameName.width) / 2 , screenHeight / 3 - GameName.height/3 - 75, RAYWHITE);
+
+        //BUTON
         int buttonWidth = 260*2;
         int buttonHeight = 56*2;
         
-        Rectangle startButton = { (float)(screenWidth - buttonWidth) / 2 + 5, (float)screenHeight / 2 - 56 + 5, (float)buttonWidth-10, (float)buttonHeight-10 };
+        Rectangle startButton = { (float)(screenWidth - buttonWidth) / 2 + 5, (float)screenHeight / 2 - 56 + 125 + 5, (float)buttonWidth-10, (float)buttonHeight-10 };
         DrawRectangleRec(startButton, BLUE);
         
         if (CheckCollisionPointRec(GetMousePosition(), startButton)) {
-            DrawTexture(ButtonH, (screenWidth - buttonWidth) / 2 , screenHeight / 2 - buttonHeight/2, RAYWHITE);
+            DrawTexture(ButtonH, (screenWidth - buttonWidth) / 2 , screenHeight / 2 - buttonHeight/2 + 125, RAYWHITE);
         }else{
-            DrawTexture(ButtonD, (screenWidth - buttonWidth) / 2 , screenHeight / 2 - buttonHeight/2, RAYWHITE);
+            DrawTexture(ButtonD, (screenWidth - buttonWidth) / 2 , screenHeight / 2 - buttonHeight/2 + 125, RAYWHITE);
         }            
         
         if (CheckCollisionPointRec(GetMousePosition(), startButton) && IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
@@ -368,14 +368,22 @@ void ShowMainMenu(bool& gameStarted, int screenWidth, int screenHeight, Texture2
 }
 
 
-void ShowEndMenu(bool& status, int score, int maxScore) {
+void ShowEndMenu(bool& status, int score, int maxScore, int screenWidth, int screenHeight, const char* background,Texture2D TekrarDef, Texture2D TekrarHov, Texture2D CikDef, Texture2D CikHov) {
+    
+    Texture2D Background = LoadTexture(background);
+    float scrollingBack = 0.0f;
+    SetTargetFPS(60);
+
     while (!WindowShouldClose()) {
+
+        scrollingBack -= 2.0f;
+        if (scrollingBack <= -Background.width) scrollingBack = 0;
 
         BeginDrawing();
         ClearBackground(RAYWHITE);
 
-        int screenWidth = GetScreenWidth();
-        int screenHeight = GetScreenHeight();
+        DrawTextureEx(Background, (Vector2){ scrollingBack, 0 }, 0.0f, 1.0f, RAYWHITE);
+        DrawTextureEx(Background, (Vector2){ screenWidth*2 + scrollingBack, 0 }, 0.0f, 1.0f, RAYWHITE);
 
         // Başlık
         const char* titleText = "Oyun Bitti";
@@ -401,26 +409,28 @@ void ShowEndMenu(bool& status, int score, int maxScore) {
         DrawText(scoreStr.c_str(), scoreX, scoreY, scoreFontSize, BLACK);
 
         // Butonlar
-        int buttonWidth = 260;
-        int buttonHeight = 50;
+        int buttonWidth = 260*2;
+        int buttonHeight = 56*2;
         int buttonX = (screenWidth - buttonWidth) / 2;
         
-        Rectangle restartButton = { (float)buttonX, (float)(scoreY + 80), (float)buttonWidth, (float)buttonHeight };
-        Rectangle exitButton = { (float)buttonX, (float)(scoreY + 80 + buttonHeight + 30), (float)buttonWidth, (float)buttonHeight };
+        Rectangle restartButton = { (float)(buttonX + 5), (float)(scoreY + 80 + 5), (float)buttonWidth-10, (float)buttonHeight-10 };
+        Rectangle exitButton = { (float)(buttonX + 5), (float)(scoreY + 80 + buttonHeight + 30 + 5), (float)(buttonWidth - 10), (float)(buttonHeight - 10) };
 
         DrawRectangleRec(restartButton, BLUE);
-        const char* restartText = "Yeniden Oyna";
-        int restartTextWidth = MeasureText(restartText, scoreFontSize);
-        int restartTextX = buttonX + (buttonWidth - restartTextWidth) / 2;
-        int restartTextY = restartButton.y + (buttonHeight - scoreFontSize) / 2;
-        DrawText(restartText, restartTextX, restartTextY, scoreFontSize, WHITE);
+
+        if (CheckCollisionPointRec(GetMousePosition(), restartButton)) {
+            DrawTexture(TekrarHov, (float)(buttonX ) , (float)(scoreY + 80) , RAYWHITE);
+        }else{
+            DrawTexture(TekrarDef, (float)(buttonX ) , (float)(scoreY + 80) , RAYWHITE);
+        }
 
         DrawRectangleRec(exitButton, RED);
-        const char* exitText = "Exit";
-        int exitTextWidth = MeasureText(exitText, scoreFontSize);
-        int exitTextX = buttonX + (buttonWidth - exitTextWidth) / 2;
-        int exitTextY = exitButton.y + (buttonHeight - scoreFontSize) / 2;
-        DrawText(exitText, exitTextX, exitTextY, scoreFontSize, WHITE);
+        
+        if (CheckCollisionPointRec(GetMousePosition(), exitButton)) {
+            DrawTexture(CikHov, (float)(buttonX ) , (float)(scoreY + 110 + buttonHeight) , RAYWHITE);
+        }else{
+            DrawTexture(CikDef, (float)(buttonX ) , (float)(scoreY + 110 + buttonHeight) , RAYWHITE);
+        }
 
         // Butonların kontrolü
         if (CheckCollisionPointRec(GetMousePosition(), restartButton) && IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
@@ -462,7 +472,7 @@ int main() {
     float shootTimer = 0.0f;
     float shootCooldown = 0.1f;
 
-    InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Bullet Hell Game");
+    InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Shooter Rooster");
     InitAudioDevice();
     ToggleFullscreen();
 
@@ -473,11 +483,16 @@ int main() {
     Texture2D eggTexture = LoadTexture("assets/egg.png");
 
 
+    Texture2D GameName = LoadTexture("assets/GameName.png");
     Texture2D background = LoadTexture("assets/backgroundImage.jpg");
     Texture2D MainMenuBackground = LoadTexture("assets/GameMainMenuBackground.png");  // Genişlik = 2 * screenWidth
     Texture2D MainMenuForeground = LoadTexture("assets/GameMainMenuForeground.png");    // Genişlik = screenWidth
     Texture2D ButtonDef = LoadTexture("assets/BaslaDefault.png");
     Texture2D ButtonHov = LoadTexture("assets/BaslaHovered.png");
+    Texture2D ButtonTkrDef = LoadTexture("assets/TekrarDeneDef.png");
+    Texture2D ButtonTkrHov = LoadTexture("assets/TekrarDeneHover.png");
+    Texture2D ButtonCikDef = LoadTexture("assets/CikDef.png");
+    Texture2D ButtonCikHov = LoadTexture("assets/CikHover.png");
 
     
     bgMusic = LoadMusicStream("resources/backgroundMusic.ogg");
@@ -500,7 +515,7 @@ int main() {
     vector<Bullet> bullets;
 
     bool gameStarted = false;
-    ShowMainMenu(gameStarted, SCREEN_WIDTH, SCREEN_HEIGHT, MainMenuBackground, MainMenuForeground, ButtonDef, ButtonHov);
+    ShowMainMenu(gameStarted, SCREEN_WIDTH, SCREEN_HEIGHT, GameName,MainMenuBackground, MainMenuForeground, ButtonDef, ButtonHov);
 
     bool gameOver = false;
     int score = 0;
@@ -522,7 +537,8 @@ int main() {
         if (gameOver) {
             if (score > MaxScore) MaxScore = score;
             bool status = false;
-            ShowEndMenu(status, score, MaxScore);
+            
+            ShowEndMenu(status, score, MaxScore, SCREEN_WIDTH, SCREEN_HEIGHT, "assets/GameMainMenuBackground.png", ButtonTkrDef, ButtonTkrHov, ButtonCikDef, ButtonCikHov);
             if (status) {
                 ResetGame(player, dusmanlar, bullets, score, gameOver, SCREEN_WIDTH, SCREEN_HEIGHT);
                 counter_start_time = chrono::high_resolution_clock::now();
