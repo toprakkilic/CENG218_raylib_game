@@ -39,3 +39,10 @@ Asuman'ı kontrol ederek düşman dalgalarıyla savaşıyorsunuz. Yumurtaları m
 | Mouse Sol Tık       | Mouse yönüne yumurta fırlatma                             |
 | E                   | Güçlendirme: Otomatik ateş (5 saniye, 15s bekleme süresi) |
 | ESC                 | Oyunu kapatma                                             |
+
+
+![Ana Menü](images/1.jpg)
+
+![Oyun İçi Görüntü](images/2.jpg)
+
+![Oyun Sonu](images/3.jpg)
